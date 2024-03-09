@@ -3,29 +3,112 @@ import streamlit as st
 from dotenv import load_dotenv
 from openai import OpenAI
 from langchain_community.document_loaders import PyPDFLoader
+from rag import get_index_for_pdf
+
+prompt_template = """
+    You are a helpful Assistant who answers and provides feedback to users answers on interview questions based on multiple contexts given to you.
+
+    Keep your response and to the point according to the context.
+    
+    The evidence are the context of the pdf extract, which is users resume, with metadata. 
+    
+    Carefully focus on the metadata specially 'filename' and 'page' whenever answering.
+    
+    Make sure to add filename and page number at the end of sentence you are citing to.
+        
+    Reply "Not applicable" if text is irrelevant.
+     
+    The PDF content is:
+    {pdf_extract}
+"""
+
 
 def initialize_openai_client():
-    load_dotenv
+    load_dotenv()
     return OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+
+def ask_question():
+    return st.chat_input("Ask me a question")
+
 
 def upload_pdf_files():
     pdf_file = st.file_uploader("", type="pdf", accept_multiple_files=False)
     return pdf_file
 
-def load_pdf(pdf_file):
-    loader = PyPDFLoader(pdf_file)
-    pages = loader.load_and_split()
-    return pages
+
+@st.cache_data
+def create_vectordb(files, filenames):
+    # Show a spinner while creating the vectordb
+    with st.spinner("Vector database"):
+        vectordb = get_index_for_pdf(
+            [file.getvalue()
+             for file in files], filenames, os.getenv("OPENAI_API_KEY")
+        )
+    return vectordb
+
 
 def main():
     st.title("Career Coach")
-    client = initialize_openai_client()
-    pdf_file = upload_pdf_files()
+    llm = initialize_openai_client()
+    pdf_files = upload_pdf_files()
 
-    # Load and split pdf
-    pages = load_pdf(pdf_file)
-    len(pages)
-    print(pages[0])
+    if pdf_files:
+        pdf_file_names = [file.name for file in pdf_files]
+        st.session_state["vectordb"] = create_vectordb(
+            pdf_files, pdf_file_names)
+
+    prompt = st.session_state.get(
+        "prompt", [{"role": "system", "content": "none"}])
+
+    question = ask_question()
+
+    if question:
+        vectordb = st.session_state.get("vectordb", None)
+        if not vectordb:
+            with st.message("assistant"):
+                st.write("You need to provide a PDF")
+                st.stop()
+
+        search_results = vectordb.similarity_search(question, k=3)
+
+        pdf_extract = "/n ".join([result.page_content for result in search_results])
+
+        prompt[0] = {
+            "role": "system",
+            "content": prompt_template.format(pdf_extract=pdf_extract),
+        }
+
+        prompt.append({"role": "user", "content": question})
+        with st.chat_message("user"):
+            st.write(question)
+
+    # Display an empty assistant message while waiting for the response
+        with st.chat_message("assistant"):
+            botmsg = st.empty()
+
+    # Call ChatGPT with streaming and display the response as it comes
+        response = []
+        result = ""
+        for chunk in openai.ChatCompletion.create(
+            model="gpt-3.5-turbo", messages=prompt, stream=True
+        ):
+            text = chunk.choices[0].get("delta", {}).get("content")
+            if text is not None:
+                response.append(text)
+                result = "".join(response).strip()
+                botmsg.write(result)
+
+    # Add the assistant's response to the prompt
+        prompt.append({"role": "assistant", "content": result})
+
+    # Store the updated prompt in the session state
+        st.session_state["prompt"] = prompt
+        prompt.append({"role": "assistant", "content": result})
+
+    # Store the updated prompt in the session state
+        st.session_state["prompt"] = prompt
+
 
 if __name__ == '__main__':
-   main()
+    main()

@@ -6,6 +6,7 @@ from langchain_openai import ChatOpenAI
 from langchain_community.document_loaders import PyPDFLoader
 from rag import get_index_for_pdf
 from langchain_community.document_loaders import UnstructuredHTMLLoader
+from url_loader import load_data_from_urls
 
 prompt_template = """
     You are a helpful Assistant who answers and provides feedback to users answers on interview questions based on multiple contexts given to you.
@@ -82,6 +83,7 @@ def main():
 
     # Generate questions
     generate_questions()
+    data = load_data_from_urls(urls)
 
     question = ask_question()
 

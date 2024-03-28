@@ -2,8 +2,10 @@ import os
 import streamlit as st
 from dotenv import load_dotenv
 from openai import OpenAI
+from langchain_openai import ChatOpenAI
 from langchain_community.document_loaders import PyPDFLoader
 from rag import get_index_for_pdf
+from langchain_community.document_loaders import UnstructuredHTMLLoader
 
 prompt_template = """
     You are a helpful Assistant who answers and provides feedback to users answers on interview questions based on multiple contexts given to you.
@@ -22,14 +24,27 @@ prompt_template = """
     {pdf_extract}
 """
 
+urls = []
 
+
+# Initializing OPENAI client
 def initialize_openai_client():
     load_dotenv()
-    return OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    return ChatOpenAI(api_key=os.getenv("OPENAI_API_KEY"), model="gpt-3.5-turbo-1106", temperature=0.2)
+
+# Ask a question
 
 
 def ask_question():
-    return st.chat_input("Ask me a question")
+    return st.chat_input("Ask a question", key="question")
+
+
+def generate_questions():
+    for i in range(3):
+        url = st.sidebar.text_input(f"URL {i+1}")
+        urls.append(url)
+
+# Upload PDF files
 
 
 def upload_pdf_files():
@@ -50,7 +65,11 @@ def create_vectordb(files, filenames):
 
 def main():
     st.title("Career Coach")
+
+    # Chat model
     llm = initialize_openai_client()
+
+    # Upload PDF files
     pdf_files = upload_pdf_files()
 
     if pdf_files:
@@ -60,6 +79,9 @@ def main():
 
     prompt = st.session_state.get(
         "prompt", [{"role": "system", "content": "none"}])
+
+    # Generate questions
+    generate_questions()
 
     question = ask_question()
 

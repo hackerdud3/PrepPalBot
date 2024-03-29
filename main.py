@@ -45,7 +45,7 @@ def generate_questions():
         url = st.sidebar.text_input(f"URL {i+1}")
         urls.append(url)
 
-# Upload PDF files
+# Upload PDF filesbvvb
 
 
 def upload_pdf_files():

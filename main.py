@@ -1,4 +1,5 @@
 import os
+from langchain_openai import OpenAI
 import streamlit as st
 from dotenv import load_dotenv
 from openai import OpenAI
@@ -6,7 +7,8 @@ from langchain_openai import ChatOpenAI
 from langchain_community.document_loaders import PyPDFLoader
 from rag import get_index_for_pdf
 from langchain_community.document_loaders import UnstructuredHTMLLoader
-from url_loader import load_data_from_urls
+# from url_loader import load_data_from_urls
+import openai
 
 prompt_template = """
     You are a helpful Assistant who answers and provides feedback to users answers on interview questions based on multiple contexts given to you.
@@ -53,17 +55,6 @@ def upload_pdf_files():
     return pdf_file
 
 
-@st.cache_data
-def create_vectordb(files, filenames):
-    # Show a spinner while creating the vectordb
-    with st.spinner("Vector database"):
-        vectordb = get_index_for_pdf(
-            [file.getvalue()
-             for file in files], filenames, os.getenv("OPENAI_API_KEY")
-        )
-    return vectordb
-
-
 def main():
     st.title("Career Coach")
 
@@ -74,65 +65,72 @@ def main():
     pdf_files = upload_pdf_files()
 
     if pdf_files:
-        pdf_file_names = [file.name for file in pdf_files]
-        st.session_state["vectordb"] = create_vectordb(
-            pdf_files, pdf_file_names)
+        file_content = pdf_files.getvalue()
+        vector_index = get_index_for_pdf([file_content])
+        st.write(pdf_files)
+    else:
+        st.error("Please upload a PDF file")
 
-    prompt = st.session_state.get(
-        "prompt", [{"role": "system", "content": "none"}])
+    # prompt = st.session_state.get(
+    #     "prompt", [{"role": "system", "content": "none"}])
 
-    # Generate questions
-    generate_questions()
-    data = load_data_from_urls(urls)
+    # # Generate questions
+    # generate_questions()
 
-    question = ask_question()
+    # # Url loader
+    # # data = load_data_from_urls(urls)
 
-    if question:
-        vectordb = st.session_state.get("vectordb", None)
-        if not vectordb:
-            with st.message("assistant"):
-                st.write("You need to provide a PDF")
-                st.stop()
+    # # Ask question
+    # question = ask_question()
 
-        search_results = vectordb.similarity_search(question, k=3)
+    # if question:
+    #     # Similarity search
+    #     search_results = vector_index.similarity_search_with_score(
+    #         query=question, k=5)
 
-        pdf_extract = "/n ".join([result.page_content for result in search_results])
+    #     if not vector_index:
+    #         with st.message("assistant"):
+    #             st.write("You need to provide a PDF")
+    #             st.stop()
 
-        prompt[0] = {
-            "role": "system",
-            "content": prompt_template.format(pdf_extract=pdf_extract),
-        }
+    #     pdf_extract = "/n ".join([result.page_content for result in search_results])
 
-        prompt.append({"role": "user", "content": question})
-        with st.chat_message("user"):
-            st.write(question)
+    #     prompt[0] = {
+    #         "role": "system",
+    #         "content": prompt_template.format(pdf_extract=pdf_extract),
+    #     }
 
-    # Display an empty assistant message while waiting for the response
-        with st.chat_message("assistant"):
-            botmsg = st.empty()
+    #     prompt.append({"role": "user", "content": question})
+    #     with st.chat_message("user"):
+    #         st.write(question)
 
-    # Call ChatGPT with streaming and display the response as it comes
-        response = []
-        result = ""
-        for chunk in openai.ChatCompletion.create(
-            model="gpt-3.5-turbo", messages=prompt, stream=True
-        ):
-            text = chunk.choices[0].get("delta", {}).get("content")
-            if text is not None:
-                response.append(text)
-                result = "".join(response).strip()
-                botmsg.write(result)
+    # # Display an empty assistant message while waiting for the response
+    #     with st.chat_message("assistant"):
+    #         botmsg = st.empty()
 
-    # Add the assistant's response to the prompt
-        prompt.append({"role": "assistant", "content": result})
+    # # Call ChatGPT with streaming and display the response as it comes
+    #     response = []
+    #     result = ""
+    #     for chunk in openai.ChatCompletion.create(
+    #         model="gpt-3.5-turbo", messages=prompt, stream=True
+    #     ):
+    #         text = chunk.choices[0].get("delta", {}).get("content")
+    #         if text is not None:
+    #             response.append(text)
+    #             result = "".join(response).strip()
+    #             botmsg.write(result)
 
-    # Store the updated prompt in the session state
-        st.session_state["prompt"] = prompt
-        prompt.append({"role": "assistant", "content": result})
+    #     # Add the assistant's response to the prompt
+    #     prompt.append({"role": "assistant", "content": result})
 
-    # Store the updated prompt in the session state
-        st.session_state["prompt"] = prompt
+    #     # Store the updated prompt in the session state
+    #     st.session_state["prompt"] = prompt
+    #     prompt.append({"role": "assistant", "content": result})
+
+    # # Store the updated prompt in the session state
+    #     st.session_state["prompt"] = prompt
 
 
 if __name__ == '__main__':
+
     main()

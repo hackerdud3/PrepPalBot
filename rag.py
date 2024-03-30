@@ -7,11 +7,19 @@ from langchain.docstore.document import Document
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores.faiss import FAISS
+from langchain_mongodb import MongoDBAtlasVectorSearch
 from pypdf import PdfReader
+from mongoDBclient import client
 import faiss
 
 
-def parse_pdf(file: BytesIO, filename: str) -> Tuple[List[str], str]:
+db_name = "careercoach"
+collection_name = "embedded_vectors"
+atlas_collection = client[db_name][collection_name]
+vector_search_index = "vector_index"
+
+
+def parse_pdf(file: BytesIO) -> Tuple[List[str]]:
     pdf = PdfReader(file)
     output = []
     for page in pdf.pages:
@@ -20,10 +28,10 @@ def parse_pdf(file: BytesIO, filename: str) -> Tuple[List[str], str]:
         text = re.sub(r"(?<!\n\s)\n(?!\s\n)", " ", text.strip())
         text = re.sub(r"\n\s*\n", "\n\n", text)
         output.append(text)
-    return output, filename
+    return output
 
 
-def text_to_docs(text: List[str], filename: str) -> List[Document]:
+def text_to_docs(text: List[str]) -> List[Document]:
     if isinstance(text, str):
         text = [text]
     page_docs = [Document(page_content=page) for page in text]
@@ -44,22 +52,24 @@ def text_to_docs(text: List[str], filename: str) -> List[Document]:
                     "page": doc.metadata["page"], "chunk": i}
             )
             doc.metadata["source"] = f"{doc.metadata['page']}-{doc.metadata['chunk']}"
-            doc.metadata["filename"] = filename
             doc_chunks.append(doc)
     return doc_chunks
 
 
-def docs_to_index(docs, openai_api_key):
+def vector_store(docs: List[Document]):
+    vector_search = MongoDBAtlasVectorSearch.from_documents(
+        documents=docs,
+        embedding=OpenAIEmbeddings(disallowed_special=()),
+        collection=atlas_collection,
+        index_name=vector_search_index,
+    )
+    return vector_search
 
-    index = FAISS.from_documents(
-        docs, OpenAIEmbeddings(openai_api_key=openai_api_key))
-    return index
 
-
-def get_index_for_pdf(pdf_files, pdf_names, openai_api_key):
+def get_index_for_pdf(pdf_files):
     documents = []
-    for pdf_file, pdf_name in zip(pdf_files, pdf_names):
-        text, filename = parse_pdf(BytesIO(pdf_file), pdf_name)
-        documents = documents + text_to_docs(text, filename)
-    index = docs_to_index(documents, openai_api_key)
+    for pdf_file in pdf_files:
+        text = parse_pdf(BytesIO(pdf_file))
+        documents = documents + text_to_docs(text)
+    index = vector_store(documents)
     return index

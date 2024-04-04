@@ -1,1 +1,33 @@
-.env
+# Ignore compiled files
+*.class
+*.o
+*.pyc
+
+# Ignore IDE and editor files
+.idea/
+.vscode/
+*.iml
+
+# Ignore dependencies
+/node_modules/
+/vendor/
+
+# Ignore logs and temporary files
+/logs/
+/tmp/
+
+# Ignore environment-specific files
+.env*
+.env.local
+.env.*.local
+
+# Ignore build artifacts
+/build/
+/dist/
+
+# Ignore database files
+*.db
+
+# Ignore operating system files
+.DS_Store
+Thumbs.db

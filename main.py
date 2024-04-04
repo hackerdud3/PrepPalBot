@@ -12,6 +12,7 @@ import openai
 import asyncio
 import playwright.async_api as playwright
 
+
 prompt_template = """
     You are a helpful Assistant who answers and provides feedback to users answers on interview questions based on multiple contexts given to you.
 
@@ -115,6 +116,8 @@ def main():
         prompt.append({"role": "user", "content": question})
         with st.chat_message("user"):
             st.write(question)
+
+    # Call the model
 
     # Display empty assistant message while waiting for the response
         with st.chat_message("assistant"):

@@ -6,9 +6,11 @@ from openai import OpenAI
 from langchain_openai import ChatOpenAI
 from langchain_community.document_loaders import PyPDFLoader
 from rag import get_index_for_pdf
-from langchain_community.document_loaders import UnstructuredHTMLLoader
-# from url_loader import load_data_from_urls
+from html_scrape import scrape_urls
+from url_loader_and_splitter import load_data_from_urls, url_splitter
 import openai
+import asyncio
+import playwright.async_api as playwright
 
 prompt_template = """
     You are a helpful Assistant who answers and provides feedback to users answers on interview questions based on multiple contexts given to you.
@@ -43,11 +45,16 @@ def ask_question():
 
 
 def generate_questions():
+    pass
+
+
+def input_urls():
     for i in range(3):
         url = st.sidebar.text_input(f"URL {i+1}")
+        st.write(url)
         urls.append(url)
 
-# Upload PDF filesbvvb
+# Upload PDF files
 
 
 def upload_pdf_files():
@@ -64,22 +71,26 @@ def main():
     # Upload PDF files
     pdf_files = upload_pdf_files()
 
+    input_urls()
+
+    # Get index for PDF
     if pdf_files:
         file_content = pdf_files.getvalue()
-        vector_index, documents = get_index_for_pdf([file_content])
-        st.write(documents)
+        vector_index = get_index_for_pdf([file_content])
         st.write(pdf_files)
     else:
         st.error("Please upload a PDF file")
+
+    # Url loader
+    process_urls = st.sidebar.button("Process")
+    if process_urls:
+        url_data = load_data_from_urls(urls)
+        url_data_chunks = url_splitter(url_data)
 
     prompt = st.session_state.get(
         "prompt", [{"role": "system", "content": "none"}])
 
     # Generate questions
-    generate_questions()
-
-    # Url loader
-    # data = load_data_from_urls(urls)
 
     # Ask question
     question = ask_question()
@@ -105,7 +116,7 @@ def main():
         with st.chat_message("user"):
             st.write(question)
 
-    # Display an empty assistant message while waiting for the response
+    # Display empty assistant message while waiting for the response
         with st.chat_message("assistant"):
             botmsg = st.empty()
 

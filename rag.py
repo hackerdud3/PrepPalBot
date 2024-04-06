@@ -14,9 +14,11 @@ import faiss
 
 
 db_name = "careercoach"
-collection_name = "embedded_vectors"
+collection_name = "pdf_embeddings"
 atlas_collection = client[db_name][collection_name]
 vector_search_index = "vector_index"
+
+# Parse pdf file
 
 
 def parse_pdf(file: BytesIO) -> Tuple[List[str]]:
@@ -30,8 +32,10 @@ def parse_pdf(file: BytesIO) -> Tuple[List[str]]:
         output.append(text)
     return output
 
+# Convert text to chunks
 
-def text_to_docs(text: List[str]) -> List[Document]:
+
+def text_to_chunks(text: List[str]) -> List[Document]:
     if isinstance(text, str):
         text = [text]
     page_docs = [Document(page_content=page) for page in text]
@@ -41,7 +45,7 @@ def text_to_docs(text: List[str]) -> List[Document]:
     doc_chunks = []
     for doc in page_docs:
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=4000,
+            chunk_size=300,
             separators=["\n\n", "\n", ".", "!", "?", ",", " ", ""],
             chunk_overlap=10,
         )
@@ -54,6 +58,8 @@ def text_to_docs(text: List[str]) -> List[Document]:
             doc.metadata["source"] = f"{doc.metadata['page']}-{doc.metadata['chunk']}"
             doc_chunks.append(doc)
     return doc_chunks
+
+# Vector store and return index
 
 
 def vector_store(docs: List[Document]):
@@ -70,6 +76,6 @@ def get_index_for_pdf(pdf_files):
     documents = []
     for pdf_file in pdf_files:
         text = parse_pdf(BytesIO(pdf_file))
-        documents = documents + text_to_docs(text)
+        documents = documents + text_to_chunks(text)
     index = vector_store(documents)
     return index

@@ -10,18 +10,17 @@ from langchain_openai import ChatOpenAI
 from langchain_community.document_loaders import PyPDFLoader
 from rag import get_index_for_pdf
 from html_scrape import scrape_urls
-from url_loader_and_splitter import load_data_from_urls, url_splitter
+from url_loader_and_splitter import load_data_from_urls, url_splitter, get_info_from_url
 from streamlit_chat import message
 from langchain.chains.conversation.base import ConversationChain
 from langchain.chains.conversation.memory import ConversationBufferWindowMemory
 from langchain.prompts import SystemMessagePromptTemplate, HumanMessagePromptTemplate, ChatPromptTemplate, MessagesPlaceholder
+load_dotenv()
 
 prompt_template = """
     You are a helpful Assistant who answers and provides feedback to users answers on interview questions based on multiple contexts given to you.
 
-    Keep your response and to the point according to the context.
-    
-    The evidence are the context of the pdf extract, which is users resume, with metadata. 
+    Keep your response and to the point according to the context. 
         
     Reply "Not applicable" if text is irrelevant.
      
@@ -31,10 +30,10 @@ system_msg_template = SystemMessagePromptTemplate.from_template(
     template=prompt_template)
 
 human_msg_template = HumanMessagePromptTemplate.from_template(
-    template="{query}")
+    template="{input}")
 
 chat_prompt_template = ChatPromptTemplate.from_messages(
-    [system_msg_template, human_msg_template])
+    [system_msg_template, human_msg_template, MessagesPlaceholder(variable_name="history")])
 
 urls = []
 
@@ -42,8 +41,7 @@ urls = []
 
 
 def initialize_openai_client():
-    load_dotenv()
-    return ChatOpenAI(api_key=os.getenv("OPENAI_API_KEY"), model="gpt-3.5-turbo-1106", temperature=0.2)
+    return ChatOpenAI(api_key=os.getenv("OPENAI_API_KEY"), model="gpt-3.5-turbo-1106", temperature=0.5)
 
 
 def create_conversation_chain(llm):
@@ -55,7 +53,7 @@ def create_conversation_chain(llm):
 
 
 def ask_question():
-    return st.chat_input("Ask a question", key="question")
+    return st.chat_input("Ask a question", key="input")
 
 
 def generate_questions():
@@ -64,8 +62,8 @@ def generate_questions():
 
 def input_urls():
     for i in range(3):
-        url = st.sidebar.text_input(f"URL {i+1}")
-        st.write(url)
+        url = st.sidebar.text_input(
+            f"URL {i+1}", placeholder="https://www.example.com")
         urls.append(url)
 
 # Upload PDF files
@@ -80,7 +78,7 @@ def upload_pdf_files():
 
 def find_match(vector_index, query):
     search_results = vector_index.similarity_search_with_score(
-        query=query, k=25)
+        query=query, k=10)
     return search_results
 
 # Conversation string
@@ -109,7 +107,7 @@ def main():
 
     if "buffer_memory" not in st.session_state:
         st.session_state.buffer_memory = ConversationBufferWindowMemory(
-            k=3, return_messages=True)
+            k=3, return_messages=True, memory_key='history')
 
     response_container = st.container()
     text_container = st.container()
@@ -120,13 +118,10 @@ def main():
     # Upload PDF files
     pdf_files = upload_pdf_files()
 
-    vector_index = None
-
     # Get index for PDF
     if pdf_files:
         file_content = pdf_files.getvalue()
         vector_index = get_index_for_pdf([file_content])
-        st.write(pdf_files)
     else:
         st.error("Please upload a PDF file")
 
@@ -136,13 +131,19 @@ def main():
             k=3, return_messages=True)
 
     # Url loader
-    process_urls = st.sidebar.button("Process")
-    if process_urls:
-        url_data = load_data_from_urls(urls)
-        url_data_chunks = url_splitter(url_data)
 
-    # # Conversation chain
-    # conversation_chain = create_conversation_chain(llm)
+    process_urls = st.sidebar.button("Process")
+    web_data = []
+    if process_urls:
+        for i in range(len(urls)):
+            info = get_info_from_url(urls[i])
+            if info is not None:
+                web_data.append(info)
+
+    url_data_chunks = url_splitter(web_data)
+    st.write(url_data_chunks)
+    # Conversation chain
+    conversation_chain = create_conversation_chain(llm)
 
     # Ask question
     with text_container:
@@ -152,14 +153,15 @@ def main():
                 conversation_string = get_conversation_string()
                 # Similarity search
                 context = find_match(vector_index, query)
-                pdf_extract = "/n ".join(
-                    [result.page_content for result in context])
+                st.write(context)
+                pdf_extract = ""
+                for i in range(len(context)):
+                    doc = context[i][0]
+                    pdf_extract += doc.page_content[:500]
+                st.write(pdf_extract)
                 prompt_template.format(pdf_extract=pdf_extract)
-                # prompt_input = {
-                #     "query": f"Context:\n{pdf_extract} \n\n Query:\n{query}"
-                # }
-                # response = conversation_chain.predict(
-                #     input={prompt_input})
+                response = conversation_chain.predict(
+                    input=f"Context:\n {pdf_extract} \n\n Query:\n{query}")
             st.session_state.requests.append(query)
             st.session_state.responses.append(response)
     with response_container:
@@ -169,19 +171,6 @@ def main():
                 if i < len(st.session_state["requests"]):
                     message(st.session_state["requests"][i],
                             is_user=True, key=str(i) + "_user")
-    # Call ChatGPT with streaming and display the response as it comes
-
-        # for chunk in openai.ChatCompletion.create(
-        #     model="gpt-3.5-turbo", messages=prompt, stream=True
-        # ):
-        #     text = chunk.choices[0].get("delta", {}).get("content")
-        #     if text is not None:
-        #         response.append(text)
-        #         result = "".join(response).strip()
-        #         botmsg.write(result)
-
-        # # Add the assistant's response to the prompt
-        # prompt.append({"role": "assistant", "content": result})
 
 
 if __name__ == '__main__':

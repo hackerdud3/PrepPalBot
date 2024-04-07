@@ -27,7 +27,8 @@ def parse_pdf(file: BytesIO) -> Tuple[List[str]]:
     for page in pdf.pages:
         text = page.extract_text()
         text = re.sub(r"(\w+)-\n(\w+)", r"\1\2", text)
-        text = re.sub(r"(?<!\n\s)\n(?!\s\n)", " ", text.strip())
+        text = re.sub(r'\n*•\s*', ' ', text)
+        text = re.sub(r"(?<!\n\s)\n(?!\s\n)", "\n", text.strip())
         text = re.sub(r"\n\s*\n", "\n\n", text)
         output.append(text)
     return output
@@ -45,9 +46,8 @@ def text_to_chunks(text: List[str]) -> List[Document]:
     doc_chunks = []
     for doc in page_docs:
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=300,
-            separators=["\n\n", "\n", ".", "!", "?", ",", " ", ""],
-            chunk_overlap=10,
+            chunk_size=1500,
+            chunk_overlap=20,
         )
         chunks = text_splitter.split_text(doc.page_content)
         for i, chunk in enumerate(chunks):
@@ -57,6 +57,7 @@ def text_to_chunks(text: List[str]) -> List[Document]:
             )
             doc.metadata["source"] = f"{doc.metadata['page']}-{doc.metadata['chunk']}"
             doc_chunks.append(doc)
+
     return doc_chunks
 
 # Vector store and return index
@@ -77,5 +78,7 @@ def get_index_for_pdf(pdf_files):
     for pdf_file in pdf_files:
         text = parse_pdf(BytesIO(pdf_file))
         documents = documents + text_to_chunks(text)
+        for doc in documents:
+            st.write("New Doc\n\n" + doc.page_content)
     index = vector_store(documents)
     return index

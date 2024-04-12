@@ -10,7 +10,7 @@ from langchain_openai import ChatOpenAI
 from langchain_community.document_loaders import PyPDFLoader
 from rag import get_index_for_pdf
 from html_scrape import scrape_urls
-from url_loader_and_splitter import load_data_from_urls, url_splitter, get_info_from_url
+from url_loader_and_splitter import get_url_index
 from streamlit_chat import message
 from langchain.chains.conversation.base import ConversationChain
 from langchain.chains.conversation.memory import ConversationBufferWindowMemory
@@ -133,12 +133,9 @@ def main():
     # Url loader
 
     process_urls = st.sidebar.button("Process")
-    web_data = []
-    if process_urls:
-        for i in range(len(urls)):
-            info = get_info_from_url(urls[i])
-            if info is not None:
-                web_data.append(info)
+
+    if process_urls and len(urls) > 0:
+        url_index = get_url_index(urls[i])
 
     url_data_chunks = url_splitter(web_data)
     st.write(url_data_chunks)

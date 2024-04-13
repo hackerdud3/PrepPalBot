@@ -43,7 +43,7 @@ def get_info_from_url(url: str):
 def url_splitter(data):
     splitter = RecursiveCharacterTextSplitter(chunk_size=1000, separators=[
                                               "\n\n", "\n", ".", "!", "?", ",", " ", "", "|"], chunk_overlap=10)
-    chunks = splitter.create_documents(data)
+    chunks = splitter.create_documents([data])
     return chunks
 
 
@@ -60,5 +60,7 @@ def vector_store(docs: List[Document]):
 def get_url_index(url: str):
     data = get_info_from_url(url)
     url_data_chunks = url_splitter(data)
+    for chunk in url_data_chunks:
+        st.write(chunk.page_content + "/n")
     url_index = vector_store(url_data_chunks)
     return url_index

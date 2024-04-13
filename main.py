@@ -7,9 +7,7 @@ from langchain_openai import OpenAI
 from dotenv import load_dotenv
 from openai import OpenAI
 from langchain_openai import ChatOpenAI
-from langchain_community.document_loaders import PyPDFLoader
 from rag import get_index_for_pdf
-from html_scrape import scrape_urls
 from url_loader_and_splitter import get_url_index
 from streamlit_chat import message
 from langchain.chains.conversation.base import ConversationChain
@@ -18,11 +16,12 @@ from langchain.prompts import SystemMessagePromptTemplate, HumanMessagePromptTem
 load_dotenv()
 
 prompt_template = """
-    You are a helpful Assistant who answers and provides feedback to users answers on interview questions based on multiple contexts given to you.
+    You are a helpful Assistant who will provide best possible answers for the user to answer, to the interview question provided to you. You need to provide your answer based on multiple contexts, for example resume context, given to you.
 
-    Keep your response and to the point according to the context. 
+    Keep your response according to the context. 
+
+    Reply "Relavant information for the question is not provided" if context is irrelevant.
         
-    Reply "Not applicable" if text is irrelevant.
      
 """
 
@@ -115,6 +114,11 @@ def main():
     # Chat model
     llm = initialize_openai_client()
 
+    # Buffer memory
+    if "buffer" not in st.session_state:
+        st.session_state.buffer = ConversationBufferWindowMemory(
+            k=3, return_messages=True)
+
     # Upload PDF files
     pdf_files = upload_pdf_files()
 
@@ -125,20 +129,14 @@ def main():
     else:
         st.error("Please upload a PDF file")
 
-    # Buffer memory
-    if "buffer" not in st.session_state:
-        st.session_state.buffer = ConversationBufferWindowMemory(
-            k=3, return_messages=True)
-
     # Url loader
 
     process_urls = st.sidebar.button("Process")
-
     if process_urls and len(urls) > 0:
-        url_index = get_url_index(urls[i])
+        url_index = get_url_index(urls[0])
+    else:
+        st.error("Please enter atleast one URL")
 
-    url_data_chunks = url_splitter(web_data)
-    st.write(url_data_chunks)
     # Conversation chain
     conversation_chain = create_conversation_chain(llm)
 
@@ -150,17 +148,16 @@ def main():
                 conversation_string = get_conversation_string()
                 # Similarity search
                 context = find_match(vector_index, query)
-                st.write(context)
                 pdf_extract = ""
                 for i in range(len(context)):
                     doc = context[i][0]
                     pdf_extract += doc.page_content[:500]
-                st.write(pdf_extract)
                 prompt_template.format(pdf_extract=pdf_extract)
                 response = conversation_chain.predict(
                     input=f"Context:\n {pdf_extract} \n\n Query:\n{query}")
             st.session_state.requests.append(query)
             st.session_state.responses.append(response)
+
     with response_container:
         if st.session_state['responses']:
             for i in range(len(st.session_state["responses"])):

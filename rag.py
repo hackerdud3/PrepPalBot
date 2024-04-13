@@ -6,11 +6,9 @@ import streamlit as st
 from langchain.docstore.document import Document
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.vectorstores.faiss import FAISS
 from langchain_mongodb import MongoDBAtlasVectorSearch
 from pypdf import PdfReader
 from mongoDBclient import client
-import faiss
 
 
 db_name = "careercoach"
@@ -78,7 +76,5 @@ def get_index_for_pdf(pdf_files):
     for pdf_file in pdf_files:
         text = parse_pdf(BytesIO(pdf_file))
         documents = documents + text_to_chunks(text)
-        for doc in documents:
-            st.write("New Doc\n\n" + doc.page_content)
     index = vector_store(documents)
     return index

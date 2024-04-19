@@ -15,10 +15,44 @@ from langchain.chains.conversation.memory import ConversationBufferWindowMemory
 from langchain.prompts import SystemMessagePromptTemplate, HumanMessagePromptTemplate, ChatPromptTemplate, MessagesPlaceholder
 load_dotenv()
 
-prompt_template = """
-    You are a helpful Assistant who will provide best possible answers for the user to answer, to the interview question provided to you. You need to provide your answer based on multiple contexts, for example resume context, given to you.
+response_types = {
+    'Generate Questions' : """
+        You are a helpful assistant who will train users on personalized interview questions. Your goal is to generate questions based on the context above passed to you.
+        Context include parsed data from websites. Provide questions if only relavant context is passed.
+        Otherwise, reply "Relavant data is not found for generating Interview questions" if context is irrelevant.
 
-    Keep your response according to the context. 
+        % START OF DATA FROM WEBSITE
+        {context}
+        % END OF DATA FROM WEBSITE
+""" ,
+    'Answer Questions' : """
+        You are a helpful Assistant who will train users on personalized interview questions. You will provide the best possible answer to the interview question based on the context passed to you.
+"""
+}
+map_prompt =  """
+    You are helpful AI assistant that trains the user on personalized interview questions.
+
+    {response_type}
+
+    % START OF RESUME INFORMATION
+    {context}
+    % END OF RESUME INFORMATION
+"""
+
+combined_prompt = """
+    You are a helpful Assistant who will train users on personalized interview questions.
+    You will be given information about candidate's {resume}.
+    
+
+"""
+
+
+prompt_template = """
+    You are a helpful Assistant who will train users on personalized interview questions. You will provide users with 10 personalized interview questions based on the context passed to you. The context here is data from 
+    from a Interview questions website.
+
+    When the {input} is an interview question. Provide best possible answer to the interview question provided to you for the user to answer based on the context. You need to provide your answer based on multiple contexts, for example resume context, given to you.
+
 
     Reply "Relavant information for the question is not provided" if context is irrelevant.
         
@@ -131,7 +165,7 @@ def main():
 
     # Url loader
 
-    process_urls = st.sidebar.button("Process")
+    process_urls = st.sidebar.button("Generate Interview Questions")
     if process_urls and len(urls) > 0:
         url_index = get_url_index(urls[0])
     else:
@@ -153,8 +187,11 @@ def main():
                     doc = context[i][0]
                     pdf_extract += doc.page_content[:500]
                 prompt_template.format(pdf_extract=pdf_extract)
+                # response = conversation_chain.predict(
+                #     input=f"Context:\n {pdf_extract} \n\n Query:\n{query}")
+
                 response = conversation_chain.predict(
-                    input=f"Context:\n {pdf_extract} \n\n Query:\n{query}")
+                   "Query": query )
             st.session_state.requests.append(query)
             st.session_state.responses.append(response)
 

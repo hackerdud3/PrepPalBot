@@ -18,12 +18,13 @@ vector_search_index = "vector_index"
 
 # Parse pdf file
 
-
 def parse_pdf(file: BytesIO) -> Tuple[List[str]]:
     pdf = PdfReader(file)
     output = []
+    i = 0
     for page in pdf.pages:
         text = page.extract_text()
+        st.write("Extracted text\+n+ \n", text)
         text = re.sub(r"(\w+)-\n(\w+)", r"\1\2", text)
         text = re.sub(r'\n*•\s*', ' ', text)
         text = re.sub(r"(?<!\n\s)\n(?!\s\n)", "\n", text.strip())

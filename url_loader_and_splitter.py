@@ -3,11 +3,12 @@ import requests
 from bs4 import BeautifulSoup
 from markdownify import markdownify as md
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain_mongodb import MongoDBAtlasVectorSearch
+from langchain_openai import OpenAIEmbeddings
+from langchain.vectorstores.mongodb_atlas import MongoDBAtlasVectorSearch
 from langchain.docstore.document import Document
 import streamlit as st
 from mongoDBclient import client
+from langchain_community.vectorstores import FAISS
 
 
 main_placeholder = st.empty()
@@ -37,30 +38,43 @@ def get_info_from_url(url: str):
     soup = BeautifulSoup(response.text, "html.parser")
     text = soup.get_text()
     text = md(text)
+    st.write(text)
     return text
 
 
 def url_splitter(data):
-    splitter = RecursiveCharacterTextSplitter(chunk_size=1000, separators=[
-                                              "\n\n", "\n", ".", "!", "?", ",", " ", "", "|"], chunk_overlap=10)
+    splitter = RecursiveCharacterTextSplitter(chunk_size=2000, separators=[
+                                              "\n\n", "\n", ".", "!", ",", " ", "", "|"], chunk_overlap=10)
     chunks = splitter.create_documents([data])
     return chunks
 
+embeddings = OpenAIEmbeddings()
+def faiss_vector_store(docs):
+    db = FAISS.from_documents(
+        docs, embeddings
+    )
+    return db
 
 def vector_store(docs: List[Document]):
-    vector_search = MongoDBAtlasVectorSearch(
-        collection=atlas_collection,
-        embeddings=OpenAIEmbeddings(disallowed_special=()),
+    vector_search = MongoDBAtlasVectorSearch.from_documents(
         documents=docs,
-        index_name=vector_search_index
+        embedding=OpenAIEmbeddings(disallowed_special=()),
+        collection=atlas_collection,
+        index_name=vector_search_index,
     )
     return vector_search
 
+def get_url_chunks(url:str):
+    data = get_info_from_url(url)
+    url_chunks = url_splitter(data)
+    return url_chunks
 
-def get_url_index(url: str):
+
+def get_url_index(url:str):
     data = get_info_from_url(url)
     url_data_chunks = url_splitter(data)
-    for chunk in url_data_chunks:
-        st.write(chunk.page_content + "/n")
+    # index = faiss_vector_store(url_data_chunks)
+    # query = "Get all the interview questions and anwers pairs"
     url_index = vector_store(url_data_chunks)
+
     return url_index

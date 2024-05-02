@@ -17,19 +17,18 @@ from langchain.prompts import SystemMessagePromptTemplate, HumanMessagePromptTem
 load_dotenv()
 
 response_types = {
-    'Generate Questions' : """
+    'Generate Questions': """
         You are a helpful assistant who will train users on personalized interview questions. Your goal is to generate questions based on the context above passed to you.
         Provide questions if only relavant context is passed.
         Otherwise, reply "Relavant data is not found for generating Interview questions" if context is irrelevant.
-""" ,
-    'Answer Questions' : """
+""",
+    'Answer Questions': """
         You are a helpful Assistant who will train users on personalized interview questions. You will provide the best possible answer to the interview question based on the context passed to you.
-    
 """
 }
 
 
-map_prompt =  """
+map_prompt = """
     You are helpful AI assistant that trains the user on personalized interview questions.
     The below context is from a Interview questions website. Please identify intreview questions and its answers.
 
@@ -40,8 +39,8 @@ map_prompt =  """
     % END OF CONTEXT
 
     Your Response: """
-map_prompt_template = PromptTemplate(template = map_prompt, input_variables=["text", "response_type"])
-
+map_prompt_template = PromptTemplate(
+    template=map_prompt, input_variables=["text", "response_type"])
 
 
 combined_prompt = """
@@ -53,10 +52,10 @@ combined_prompt = """
     % START OF CONTEXT
     {text}
     % END OF CONTEXT
-
 """
 
-combined_prompt_template = PromptTemplate(template = combined_prompt, input_variables=["text", "response_type"])
+combined_prompt_template = PromptTemplate(
+    template=combined_prompt, input_variables=["text", "response_type"])
 
 
 prompt_template = """
@@ -103,6 +102,7 @@ def create_conversation_chain(llm):
 
 # Ask a question
 
+
 def ask_question():
     return st.chat_input("Ask a question", key="input")
 
@@ -119,6 +119,7 @@ def input_urls():
 
 # Upload PDF files
 
+
 def upload_pdf_files():
     pdf_file = st.file_uploader("", type="pdf", accept_multiple_files=False)
     return pdf_file
@@ -126,10 +127,11 @@ def upload_pdf_files():
 
 def find_match(vector_index, query):
     search_results = vector_index.similarity_search_with_score(
-        query=query, k =3, pre_filter = { "resumeid": {"$eq" : 1}})
+        query=query, k=3, pre_filter={"resumeid": {"$eq": 1}})
     return search_results
 
 # Conversation string
+
 
 def get_conversation_string():
     conversation_string = ""
@@ -180,8 +182,8 @@ def main():
     # Load summarization chain
     chain = load_summarize_chain(llm,
                                  chain_type="map_reduce",
-                                 map_prompt = map_prompt_template,
-                                 combine_prompt = combined_prompt_template,
+                                 map_prompt=map_prompt_template,
+                                 combine_prompt=combined_prompt_template,
                                  )
     # Url loader
 
@@ -193,7 +195,8 @@ def main():
             url_data = ""
             url_data = get_info_from_url(urls[0])
 
-            output = chain.invoke({"input_documents": url_chunks, "response_type": "Generate Questions"})
+            output = chain.invoke(
+                {"input_documents": url_chunks, "response_type": "Generate Questions"})
             print(combined_prompt.format)
             st.sidebar.write(output)
         else:
@@ -204,9 +207,6 @@ def main():
     # Conversation chain
     conversation_chain = create_conversation_chain(llm)
 
-
-    
- 
     # Ask question
     with text_container:
         query = ask_question()
@@ -224,7 +224,6 @@ def main():
                 response = conversation_chain.predict(
                     input=f"Context:\n {pdf_extract} \n\n Query:\n{query}")
 
-               
             st.session_state.requests.append(query)
             st.session_state.responses.append(response)
 

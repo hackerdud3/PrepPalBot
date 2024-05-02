@@ -9,7 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@nextui-org/input": "^2.1.21",
     "next": "14.2.3",
+    "next-auth": "^4.24.7",
     "node": "^22.0.0",
     "react": "^18",
     "react-dom": "^18"

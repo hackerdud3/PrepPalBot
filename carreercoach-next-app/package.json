@@ -9,12 +9,22 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@auth/mongodb-adapter": "^3.0.0",
+    "@nextui-org/button": "^2.0.31",
     "@nextui-org/input": "^2.1.21",
+    "@nextui-org/navbar": "^2.0.30",
+    "@nextui-org/react": "^2.3.6",
+    "axios": "^1.6.8",
+    "bcrypt": "^5.1.1",
+    "framer-motion": "^11.1.7",
+    "mongodb": "^6.6.0",
+    "mongoose": "^8.3.3",
     "next": "14.2.3",
     "next-auth": "^4.24.7",
     "node": "^22.0.0",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "zod": "^3.23.6"
   },
   "devDependencies": {
     "@types/node": "^20",

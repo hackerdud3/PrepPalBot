@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import Navigationbar from "@/components/Navbar/navbar";
+import { SessionWrapper, UiProvider } from "./providers/provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -15,8 +17,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} antialiase`}>{children}</body>
-    </html>
+    <SessionWrapper>
+      <html lang="en" className="dark">
+        <body>
+          <UiProvider>
+            <Navigationbar />
+            {children}
+          </UiProvider>
+        </body>
+      </html>
+    </SessionWrapper>
   );
 }

@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Navigationbar from "@/components/Navbar/navbar";
-import { SessionWrapper, UiProvider } from "./providers/provider";
+import AuthProvider from "../providers/auth-provider";
+import { UiProvider } from "@/providers/provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,7 +18,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <SessionWrapper>
+    <AuthProvider>
       <html lang="en" className="dark">
         <body>
           <UiProvider>
@@ -26,6 +27,6 @@ export default function RootLayout({
           </UiProvider>
         </body>
       </html>
-    </SessionWrapper>
+    </AuthProvider>
   );
 }

@@ -3,8 +3,8 @@ import { Navbar } from "@nextui-org/navbar";
 import React from "react";
 
 type Props = {};
-
 const page = (props: Props) => {
+  console.log("Hello Word");
   return (
     <div className="flex h-[90vh] px-6 relative">
       <SideNav />

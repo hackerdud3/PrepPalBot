@@ -9,7 +9,7 @@ from langchain_mongodb import MongoDBAtlasVectorSearch
 from pypdf import PdfReader
 from mongoDBclient import client
 from langchain_community.vectorstores import FAISS
-
+from load_summarize_chain import load_summarize
 
 
 db_name = "careercoach"
@@ -18,6 +18,7 @@ atlas_collection = client[db_name][collection_name]
 vector_search_index = "pdf_index"
 
 # Parse pdf file
+
 
 def parse_pdf(file: BytesIO) -> Tuple[List[str]]:
     pdf = PdfReader(file)
@@ -35,7 +36,7 @@ def parse_pdf(file: BytesIO) -> Tuple[List[str]]:
 # Convert text to chunks
 
 
-def text_to_chunks(text: List[str]) -> List[Document]:
+def text_to_chunks(text, resumeid) -> List[Document]:
     if isinstance(text, str):
         text = [text]
     page_docs = [Document(page_content=page) for page in text]
@@ -49,13 +50,15 @@ def text_to_chunks(text: List[str]) -> List[Document]:
             chunk_overlap=20,
         )
         chunks = text_splitter.split_text(doc.page_content)
+
         for i, chunk in enumerate(chunks):
             doc = Document(
-                page_content=chunk, 
+                page_content=chunk,
                 metadata={
-                    "page": doc.metadata["page"], "chunk": i, "resumeid": 2}
+                    "page": doc.metadata["page"], "chunk": i, "resumeid": resumeid}
             )
-            doc.metadata["source"] = f"{doc.metadata['page']}-{doc.metadata['chunk']}"
+            metadata = f"{doc.metadata['page']}-{doc.metadata['chunk']}"
+            doc.metadata["source"] = metadata
             doc_chunks.append(doc)
 
     return doc_chunks
@@ -72,10 +75,15 @@ def vector_store(docs: List[Document]):
     )
     return vector_search
 
-def get_index_for_pdf(pdf_files):
+
+def get_index_for_pdf(pdf_files, resumeid, llm):
     documents = []
     for pdf_file in pdf_files:
         text = parse_pdf(BytesIO(pdf_file))
-        documents = documents + text_to_chunks(text)
+
+    doc = Document(page_content=text[0], metadata={"chunk": 0})
+    summarized_pdf = load_summarize([doc], llm)
+    st.session_state["summarized_pdf"] = summarized_pdf
+    documents.extend(text_to_chunks(summarized_pdf, resumeid))
     index = vector_store(documents)
     return index

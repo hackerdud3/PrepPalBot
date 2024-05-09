@@ -1,14 +1,13 @@
 import re
+import streamlit as st
 from io import BytesIO
 from typing import Tuple, List
-import streamlit as st
+from pypdf import PdfReader
+from mongoDBclient import client
 from langchain.docstore.document import Document
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_mongodb import MongoDBAtlasVectorSearch
-from pypdf import PdfReader
-from mongoDBclient import client
-from langchain_community.vectorstores import FAISS
 from load_summarize_chain import load_summarize
 
 

@@ -1,5 +1,4 @@
 from pymongo.server_api import ServerApi
-import getpass
 import os
 from pymongo import MongoClient
 from dotenv import load_dotenv

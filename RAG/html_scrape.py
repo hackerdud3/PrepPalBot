@@ -3,8 +3,6 @@ from langchain.document_loaders.async_html import AsyncHtmlLoader
 from langchain.document_transformers.beautiful_soup_transformer import BeautifulSoupTransformer
 from langchain.document_transformers.html2text import Html2TextTransformer
 import streamlit as st
-import asyncio
-import playwright.async_api as playwright
 
 
 def scrape_urls(urls: List[str]):

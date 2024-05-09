@@ -1,5 +1,4 @@
-from langchain_community.vectorstores import FAISS
-from mongoDBclient import client
+import requests
 import streamlit as st
 from langchain.docstore.document import Document
 from langchain.vectorstores.mongodb_atlas import MongoDBAtlasVectorSearch
@@ -8,7 +7,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from markdownify import markdownify as md
 from bs4 import BeautifulSoup
 from typing import List
-import requests
+from mongoDBclient import client
 
 
 main_placeholder = st.empty()

@@ -1,21 +1,15 @@
 import os
-import playwright.async_api as playwright
-import streamlit as st
 import time
+import streamlit as st
 from typing import List
-from io import BytesIO
-from langchain_openai import OpenAI
-from bson import ObjectId
 from dotenv import load_dotenv
-from openai import OpenAI
 from mongoDBclient import client
 from langchain_openai import ChatOpenAI
 from rag import get_index_for_pdf
-from url_loader_and_splitter import get_info_from_url, get_url_index, get_url_chunks
+from url_loader_and_splitter import get_url_chunks
 from streamlit_chat import message
 from langchain.chains.llm import LLMChain
-from load_summarize_chain import load_summarize
-from url_loader_and_splitter import url_text_splitter, questions_text_splitter
+from url_loader_and_splitter import questions_text_splitter
 from langchain.chains.conversation.base import ConversationChain
 from langchain.chains.combine_documents.reduce import ReduceDocumentsChain
 from langchain.chains.combine_documents.stuff import StuffDocumentsChain
@@ -63,8 +57,6 @@ Answer: Certainly! Over the past three years, I've been working as a bookkeeper,
 
 system_msg_template = SystemMessagePromptTemplate.from_template(
     template=prompt_template, input_variables=["input"])
-
-print(system_msg_template.format())
 
 human_msg_template = HumanMessagePromptTemplate.from_template(
     template="{input}")

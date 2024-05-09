@@ -299,7 +299,6 @@ def main():
 
             q_and_a_docs = questions_text_splitter(
                 questions_and_answers, urls[0], st.session_state["user_name"])
-            st.write(q_and_a_docs)
             # url_index = get_url_index(q_and_a_docs)
         else:
             st.sidebar.error(

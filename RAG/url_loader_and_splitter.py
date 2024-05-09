@@ -1,14 +1,14 @@
+from langchain_community.vectorstores import FAISS
+from mongoDBclient import client
+import streamlit as st
+from langchain.docstore.document import Document
+from langchain.vectorstores.mongodb_atlas import MongoDBAtlasVectorSearch
+from langchain_openai import OpenAIEmbeddings
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from markdownify import markdownify as md
+from bs4 import BeautifulSoup
 from typing import List
 import requests
-from bs4 import BeautifulSoup
-from markdownify import markdownify as md
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_openai import OpenAIEmbeddings
-from langchain.vectorstores.mongodb_atlas import MongoDBAtlasVectorSearch
-from langchain.docstore.document import Document
-import streamlit as st
-from mongoDBclient import client
-from langchain_community.vectorstores import FAISS
 
 
 main_placeholder = st.empty()
@@ -38,22 +38,34 @@ def get_info_from_url(url: str):
     soup = BeautifulSoup(response.text, "html.parser")
     text = soup.get_text()
     text = md(text)
-    st.write(text)
     return text
 
 
-def url_splitter(data):
-    splitter = RecursiveCharacterTextSplitter(chunk_size=2000, separators=[
-                                              "\n\n", "\n", ".", "!", ",", " ", "", "|"], chunk_overlap=10)
-    chunks = splitter.create_documents([data])
+def url_text_splitter(data: str, url: str, username: str):
+    splitter = RecursiveCharacterTextSplitter(chunk_size=4000, separators=[
+                                              "\n\n", "\n", ".", "!", ",", " ", "", "|", "\d+\."], chunk_overlap=10)
+    metadata = {
+        "url": url,
+        "username": username
+    }
+    chunks = splitter.create_documents([data], [metadata])
     return chunks
 
+
+def questions_text_splitter(data: str, url: str, username: str):
+
+    splitter = RecursiveCharacterTextSplitter(chunk_size=400, separators=[
+                                              "\n\n", "\d+\."], chunk_overlap=0)
+    metadata = {
+        "url": url,
+        "username": username
+    }
+    chunks = splitter.create_documents([data], [metadata])
+    return chunks
+
+
 embeddings = OpenAIEmbeddings()
-def faiss_vector_store(docs):
-    db = FAISS.from_documents(
-        docs, embeddings
-    )
-    return db
+
 
 def vector_store(docs: List[Document]):
     vector_search = MongoDBAtlasVectorSearch.from_documents(
@@ -64,17 +76,13 @@ def vector_store(docs: List[Document]):
     )
     return vector_search
 
-def get_url_chunks(url:str):
+
+def get_url_chunks(url: str, username: str):
     data = get_info_from_url(url)
-    url_chunks = url_splitter(data)
+    url_chunks = url_text_splitter(data, url, username)
     return url_chunks
 
 
-def get_url_index(url:str):
-    data = get_info_from_url(url)
-    url_data_chunks = url_splitter(data)
-    # index = faiss_vector_store(url_data_chunks)
-    # query = "Get all the interview questions and anwers pairs"
-    url_index = vector_store(url_data_chunks)
-
+def get_url_index(docs: List[Document]):
+    url_index = vector_store(docs)
     return url_index

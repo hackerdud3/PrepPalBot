@@ -1,7 +1,7 @@
 # Career Coach Chatbot
 
 ## Overview
-Welcome to Career Coach, an AI-powered chatbot designed to assist you with career-related queries and provide valuable guidance. Whether you're exploring career options, seeking job search advice, or looking for tips on professional development, Career Coach is here to help!
+Welcome to Career Coach, an AI-powered chatbot designed to assist you with Interview questions and provides valuable guidance. Whether you're exploring career options, seeking job search advice, or looking for tips on professional development, Career Coach is here to help!
 
 ## Features
 - **Personalized Guidance**: Career Coach uses advanced AI algorithms to tailor responses to your specific needs and questions.
@@ -12,11 +12,11 @@ Welcome to Career Coach, an AI-powered chatbot designed to assist you with caree
 ## Installation
 1. Clone this repository to your local machine.
     ```bash
-    git clone https://github.com/your-username/career-coach.git
+    git clone https://github.com/hackerdud3/CareerCoachBot.git
     ```
 2. Navigate to the project directory.
     ```bash
-    cd career-coach
+    cd CareerCoachBot/RAG
     ```
 3. Install dependencies using pip.
     ```bash
@@ -26,10 +26,11 @@ Welcome to Career Coach, an AI-powered chatbot designed to assist you with caree
 ## Usage
 1. Run the Streamlit app.
     ```bash
-    streamlit run app.py
+    streamlit run main.py
     ```
 2. Open your web browser and go to the provided URL to access Career Coach.
-3. Start chatting with Career Coach by typing your questions or selecting options from the menu.
+3. Start chatting with Career Coach by uploading "you-resume".pdf. Type your interview questions and the chatbot with train you on interview questions.
+4. You can also provide the URL of any interview questions website. The chatbot will extract and analyze interview questions and answers from the website. This information will be utilized to enhance the chatbot's responses when providing tailored answers based on your resume.
 
 ## Contributing
 Contributions are welcome! If you'd like to contribute to Career Coach, please follow these steps:
@@ -40,7 +41,7 @@ Contributions are welcome! If you'd like to contribute to Career Coach, please f
 5. Submit a pull request to the main repository.
 
 ## Credits
-Career Coach is developed by [Your Name] and [Contributors]. It is built using LangChain, an open-source library for natural language processing in Python, and Streamlit, a framework for building interactive web applications with Python.
+Career Coach is developed by [Nandhi Kanti Vinay Kumaar]. It leveraages Retrieval Augmented Generation, built using GPT, LangChain framework, an open-source library for natural language processing in Python, and Streamlit.
 
 ## License
 This project is licensed under the [MIT License](LICENSE).

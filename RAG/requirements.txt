@@ -1,1 +1,10 @@
-
+streamlit
+python-dotenv
+pymongopip
+langchain_openai
+pypdf
+pypdf2
+langchain
+langchain_mongodb
+markdownify
+streamlit_chat

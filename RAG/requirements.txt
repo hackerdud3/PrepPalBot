@@ -43,7 +43,6 @@ decorator==5.1.1
 defusedxml==0.7.1
 Deprecated==1.2.14
 python-dotenv==1.0.1
-dotenv
 dill==0.3.8
 distro==1.9.0
 Django==4.1.7

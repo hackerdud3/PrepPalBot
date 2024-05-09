@@ -1,6 +1,6 @@
 streamlit
 python-dotenv
-pymongopip
+pymongo
 langchain_openai
 pypdf
 pypdf2

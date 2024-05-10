@@ -83,6 +83,9 @@ def get_index_for_pdf(pdf_files, resumeid, llm):
     doc = Document(page_content=text[0], metadata={"chunk": 0})
     summarized_pdf = load_summarize([doc], llm)
     st.session_state["summarized_pdf"] = summarized_pdf
+    if "summarized_pdf" in st.session_state["summarized_pdf"]:
+        st.markdown("###Resume Summary:")
+        st.warning(summarized_pdf)
     documents.extend(text_to_chunks(summarized_pdf, resumeid))
     index = vector_store(documents)
     return index

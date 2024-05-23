@@ -287,10 +287,6 @@ def main():
     else:
         st.error("Please upload a PDF file")
 
-    # Summarize PDF
-    if "summarized_pdf" in st.session_state:
-        st.markdown("### Resume Summary")
-        st.write(st.session_state["summarized_pdf"])
 
     # Url loader
     process_urls = st.sidebar.button("Generate Interview Questions")

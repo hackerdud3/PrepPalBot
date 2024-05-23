@@ -1,16 +1,20 @@
-import SideNav from "@/components/Navbar/side-nav";
-import { Navbar } from "@nextui-org/navbar";
-import React from "react";
+"use client";
+import SideNav from "@/components/navbar/side-nav";
+import ChatField from "@/components/chat-ui/ChatField";
+import { NextPage } from "next";
+import { useRouter } from "next/navigation";
 
-type Props = {};
-const page = (props: Props) => {
-  console.log("Hello Word");
+import React, { useEffect } from "react";
+
+const Page: NextPage = () => {
   return (
-    <div className="flex h-[90vh] px-6 relative">
+    <div className="flex px-24 gap-8 relative h-full">
       <SideNav />
-      <div>Body</div>
+      <div>
+        <ChatField />
+      </div>
     </div>
   );
 };
 
-export default page;
+export default Page;

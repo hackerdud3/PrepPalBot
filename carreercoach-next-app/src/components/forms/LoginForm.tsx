@@ -46,7 +46,6 @@ const LoginForm = (prop: Props) => {
 
   return (
     <>
-      {/* {!session ? ( */}
       <form onSubmit={handleSubmit}>
         <Card className=" w-[500px] p-6">
           <CardBody className="flex flex-col gap-6">
@@ -103,9 +102,6 @@ const LoginForm = (prop: Props) => {
           </CardBody>
         </Card>
       </form>
-      {/* ) : (
-        <div>Logged in</div>
-      )} */}
     </>
   );
 };

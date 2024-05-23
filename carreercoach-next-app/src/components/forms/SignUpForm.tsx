@@ -16,38 +16,31 @@ type Props = {};
 const SignUpForm = (prop: Props) => {
   const [isLoading, setLoading] = React.useState(false);
   const { data: session } = useSession();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
 
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setLoading(true);
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const formData = new FormData(event.currentTarget);
+    const name = formData.get("name") as string;
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+
     const values = {
+      name,
       email,
       password,
-      name,
     };
-    const res = await signUpWithCredentials(values);
+    try{
+    const response = await signUpWithCredentials(values);
 
-    if (res?.success) {
-      console.log("success");
+    if (response?.success) {
+      console.log("successfully registered");
       router.push("/signin");
     }
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    e.preventDefault();
-    const { name, value } = e.target as HTMLInputElement;
-    if (name === "email") {
-      setEmail(value);
-    } else if (name === "name") {
-      setName(value);
-    } else {
-      setPassword(value);
-    }
+  }catch(error){
+    console.error("Error signing up:", error)
   };
 
   return (
@@ -55,26 +48,9 @@ const SignUpForm = (prop: Props) => {
       <form onSubmit={handleSubmit}>
         <Card className=" md:w-[500px] p-6 w-[300px]">
           <CardBody className="flex flex-col gap-6">
-            <Input
-              name="name"
-              value={name}
-              placeholder="name"
-              onChange={handleChange}
-            />
-            <Input
-              placeholder="Enter your email"
-              type="email"
-              name="email"
-              value={email}
-              onChange={handleChange}
-            />
-            <Input
-              placeholder="Password"
-              type="passwordd"
-              name="password"
-              value={password}
-              onChange={handleChange}
-            />
+            <Input name="name" placeholder="name" />
+            <Input placeholder="Enter your email" type="email" name="email" />
+            <Input placeholder="Password" type="passwordd" name="password" />
             <div className="flex items-center justify-center gap-4">
               <Button
                 color="primary"

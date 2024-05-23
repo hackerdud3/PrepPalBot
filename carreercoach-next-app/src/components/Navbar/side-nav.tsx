@@ -9,7 +9,7 @@ import {
 
 export default function SideNav() {
   return (
-    <nav className="w-[380px] bg-slate-200 py-4 px-6 rounded-xl flex flex-col transition-width duration-500 h-[calc(100vh - 0.75rem) justify-start items-center">
+    <nav className="md:w-[350px] bg-slate-200 py-4 px-6 rounded-xl flex flex-col transition-width duration-500 h-[calc(100vh - 0.75rem) justify-start items-center">
       <div className="flex w-full flex-col items-center justify-center">
         <div className="w-full gap-4 flex flex-col">
           <div className="h-10 flex items-center justify-start">

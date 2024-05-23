@@ -38,20 +38,30 @@ response_types = {
 
 prompt_template = """
 As a helpful Assistant, your role is to provide tailored answers to users' interview questions. Craft the best possible answer based on the given context.
-The context is the entire summary of the users resume. You need to provide your answer as the user based on his work experience, skills, etc from the resume.
+The context is the entire summary of the users resume. You need to provide your answer as the user, based on his work experience, skills, etc from the resume.
 
-If you lack sufficient information to answer a question, you can highlight what should be included in the resume to answer the question in a best possible ways and offer an example on how to address the question effectively.
+Use golden rules while providing the response, include situation, tasks, action, and result in the answer.
 
-Here are a few examples of how you might respond:
+Keep your response at right length, we have only 30 seconds to answer in an interview setting .
+
+If you lack sufficient information to answer a question, you can highlight what should be include in the answer to deliver it in a best possible way. 
+Only answer the question according to the context. Otherwise train the user on how to answer to that interview question with an example answer.
+
+````````````````````````````````````````````````````
+Example of how to answer this interview question
 
 Example 1:
 Interview Question: How do you handle a situation where you have to meet multiple deadlines?
-Answer: When I'm faced with simultaneous project deadlines, I rely on my prioritization skills. For example, in my previous role, I meticulously organized tasks based on their urgency and importance, allocating time accordingly. This approach enabled me to meet all deadlines without compromising quality.
+Answer: When I'm faced with simultaneous project deadlines, I rely on my prioritization skills. For example, in my previous role, 
+I meticulously organized tasks based on their urgency and importance, allocating time accordingly. This approach enabled me to meet 
+all deadlines without compromising quality.
 
 Example 2:
-Interview Question: Tell me about yourself and your qualifications.
-Answer: Certainly! Over the past three years, I've been working as a bookkeeper, where I've managed accounts payable and receivable, along with payroll oversight. I take pride in my ability to identify and resolve discrepancies, leading to substantial cost savings for my company. Recently, I earned my CPA degree, and I'm confident that my expertise in bookkeeping, coupled with my attention to detail, aligns well with the requirements of the public accountant role at your organization.
-
+Interview Question: Describe a Time You Faced a Significant Challenge at Work?
+Answer: Last year, our team was on the verge of missing a critical deadline for a new client, which could have derailed the entire 
+project. I spearheaded an emergency plan that involved reassigning tasks based on each team member’s strengths and streamlining our 
+communication process. It was challenging, but by fostering a collaborative environment and keeping morale high, we delivered quality 
+work on time. This experience taught me the importance of adaptability and clear communication in crisis management.”
 """
 
 
@@ -243,6 +253,9 @@ def main():
 
     # Get index for
     if isUploaded and pdf_files is not None:
+        st.session_state["responses"] = ["How can I assist you today?"]
+        st.session_state["requests"] = []
+
         if (st.session_state["user_name"] == ""):
             st.error("Please enter a user name")
             return
@@ -291,7 +304,7 @@ def main():
 
             url_chunks = get_url_chunks(
                 urls[0], st.session_state["user_name"])
-            url_chunks = url_chunks[:3]
+            url_chunks = url_chunks[:5]
 
             questions_and_answers = generate_questions(url_chunks)
 

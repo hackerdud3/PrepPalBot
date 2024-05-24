@@ -10,12 +10,13 @@ import { userSignUpValidation } from "@/lib/validations/auth";
 import { signUpWithCredentials } from "@/lib/actions/auth.actions";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import GoogleButton from "../oauth-buttons/google-button";
+import GithubButton from "../oauth-buttons/github-button";
 
 type Props = {};
 
 const SignUpForm = (prop: Props) => {
   const [isLoading, setLoading] = React.useState(false);
-  const { data: session } = useSession();
 
   const router = useRouter();
 
@@ -32,58 +33,42 @@ const SignUpForm = (prop: Props) => {
       email,
       password,
     };
-    try{
-    const response = await signUpWithCredentials(values);
+    try {
+      const response = await signUpWithCredentials(values);
 
-    if (response?.success) {
-      console.log("successfully registered");
-      router.push("/signin");
+      if (response?.success) {
+        console.log("successfully registered");
+        router.push("/signin");
+      }
+    } catch (error) {
+      console.error("Error signing up:", error);
     }
-  }catch(error){
-    console.error("Error signing up:", error)
   };
 
   return (
-    <>
-      <form onSubmit={handleSubmit}>
-        <Card className=" md:w-[500px] p-6 w-[300px]">
-          <CardBody className="flex flex-col gap-6">
-            <Input name="name" placeholder="name" />
-            <Input placeholder="Enter your email" type="email" name="email" />
-            <Input placeholder="Password" type="passwordd" name="password" />
-            <div className="flex items-center justify-center gap-4">
-              <Button
-                color="primary"
-                isLoading={isLoading}
-                className="w-32"
-                type="submit"
-              >
-                Sign Up
-              </Button>
-            </div>
-
+    <form onSubmit={handleSubmit}>
+      <Card className=" md:w-[500px] p-6 w-[300px]">
+        <CardBody className="flex flex-col gap-6">
+          <Input name="name" placeholder="Enter your name" />
+          <Input placeholder="Enter your email" type="email" name="email" />
+          <Input placeholder="*********" type="password" name="password" />
+          <div className="flex items-center justify-center gap-4">
             <Button
-              onClick={async () => {
-                await signIn("google");
-              }}
               color="primary"
+              isLoading={isLoading}
+              className="w-32"
+              type="submit"
             >
-              Sign In with Google
+              Sign Up
             </Button>
-
-            <Button
-              onClick={async () => {
-                await signIn("github");
-              }}
-              color="primary"
-            >
-              Sign In with Github
-            </Button>
-          </CardBody>
-        </Card>
-      </form>
-    </>
+          </div>
+          <div className="flex justify-between gap-2 lg:flex-row flex-col items-center">
+            <GoogleButton />
+            <GithubButton />
+          </div>
+        </CardBody>
+      </Card>
+    </form>
   );
 };
-
 export default SignUpForm;

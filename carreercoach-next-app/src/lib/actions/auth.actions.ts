@@ -8,15 +8,18 @@ import { nextauthOptions } from "@/lib/nextauth-options";
 import connectDB from "@/lib/mongodb";
 import User from "../models/user.model";
 
+/* Get User Session*/
 export async function getUserSession() {
   const session = await getServerSession(nextauthOptions);
   return { session };
 }
 
+/* Extened profile with profile pucture */
 interface ExtendedProfile extends Profile {
   picture?: string;
 }
 
+/* Sign in with Oauth */
 interface SignInWithOauthParams {
   account: Account;
   profile: ExtendedProfile;
@@ -26,33 +29,31 @@ export async function signInWithOauth({
   account,
   profile,
 }: SignInWithOauthParams) {
-  // console.log({account, profile})
   connectDB();
-
   const user = await User.findOne({ email: profile.email });
 
-  if (user) return true;
+  if (user) {
+    return true;
+  }
 
   const newUser = new User({
-    name: profile.name,
     email: profile.email,
+    name: profile.name,
     image: profile.picture,
     provider: account.provider,
   });
 
-  // console.log(newUser)
   await newUser.save();
-
   return true;
 }
 
+/* Get User by Email */
 interface GetUserByEmailParams {
   email: string;
 }
 
 export async function getUserByEmail({ email }: GetUserByEmailParams) {
   connectDB();
-
   const user = await User.findOne({ email }).select("-password");
 
   if (!user) {
@@ -63,6 +64,7 @@ export async function getUserByEmail({ email }: GetUserByEmailParams) {
   return { ...user._doc, _id: user._id.toString() };
 }
 
+/* Update User Profile */
 export interface UpdateUserProfileParams {
   name: string;
 }
@@ -96,6 +98,7 @@ export async function updateUserProfile({ name }: UpdateUserProfileParams) {
   }
 }
 
+/* Sign Up with Credentials */
 export interface SignUpWithCredentialsParams {
   name: string;
   email: string;
@@ -125,7 +128,6 @@ export async function signUpWithCredentials({
       password: hashedPassword,
     });
 
-    // console.log({newUser})
     await newUser.save();
 
     return { success: true };
@@ -139,6 +141,7 @@ interface SignInWithCredentialsParams {
   password: string;
 }
 
+/* Sign in with Credentials */
 export async function signInWithCredentials({
   email,
   password,
@@ -159,6 +162,8 @@ export async function signInWithCredentials({
 
   return { ...user._doc, _id: user._id.toString() };
 }
+
+/* Change User Password */
 
 export interface ChangeUserPasswordParams {
   oldPassword: string;

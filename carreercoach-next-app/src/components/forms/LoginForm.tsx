@@ -34,45 +34,37 @@ const LoginForm = (prop: Props) => {
       });
 
       if (response.ok) {
-        console.log("successfully logged in");
       }
     } catch (error) {}
   }
 
   return (
-    <>
-      <form onSubmit={handleSubmit}>
-        <Card className=" w-[500px] p-6">
-          <CardBody className="flex flex-col gap-6">
-            <Input placeholder="Enter your email" type="email" name="email" />
-            <Input placeholder="********" type="password" name="password" />
-            <div className="flex items-center justify-center gap-4">
-              <Button
-                color="primary"
-                isLoading={isLoading}
-                className="w-32"
-                type="submit"
-              >
-                Login
-              </Button>
-              <Link
-                size="sm"
-                underline="hover"
-                href="#"
-                className=" absolute right-8"
-              >
-                Forgot password?
-              </Link>
-            </div>
+    <form onSubmit={handleSubmit}>
+      <Card className=" lg:w-[500px] p-6 min-w-[350px] ">
+        <CardBody className="flex flex-col gap-6">
+          <Input placeholder="Enter your email" type="email" name="email" />
+          <Input placeholder="********" type="password" name="password" />
+          <div className="flex flex-col items-center justify-center gap-4">
+            <Button
+              color="primary"
+              isLoading={isLoading}
+              className="w-32 flex-grow"
+              type="submit"
+            >
+              Login
+            </Button>
+            <Link size="sm" underline="hover" href="#">
+              Forgot password?
+            </Link>
+          </div>
 
-            <div className="flex justify-between gap-x-4 items-center">
-              <GoogleButton />
-              <GithubButton />
-            </div>
-          </CardBody>
-        </Card>
-      </form>
-    </>
+          <div className="flex lg:flex-row justify-between gap-2 items-center flex-col">
+            <GoogleButton />
+            <GithubButton />
+          </div>
+        </CardBody>
+      </Card>
+    </form>
   );
 };
 

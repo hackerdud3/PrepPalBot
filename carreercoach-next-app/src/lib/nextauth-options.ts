@@ -5,46 +5,45 @@ import {
   signInWithOauth,
   getUserByEmail,
   signInWithCredentials,
-} from "@/lib/actions/auth.actions";
+} from "@/lib/auth.actions";
 import Github from "next-auth/providers/github";
+
+export const providers = [
+  Google({
+    clientId: process.env.AUTH_GOOGLE_CLIENT_ID!,
+    clientSecret: process.env.AUTH_GOOGLE_SECRET!,
+  }),
+  Github({
+    clientId: process.env.AUTH_GITHUB_CLIENT_ID!,
+    clientSecret: process.env.AUTH_GITHUB_SECRET!,
+  }),
+  Credentials({
+    name: "Credentials",
+    credentials: {
+      email: { label: "Email", type: "email", required: true },
+      password: { label: "Password", type: "password", required: true },
+    },
+    async authorize(credentials) {
+      if (!credentials?.email || !credentials?.password) {
+        return null;
+      }
+      const user = await signInWithCredentials({
+        email: credentials?.email,
+        password: credentials?.password,
+      });
+      return user;
+    },
+  }),
+];
 
 export const nextauthOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   pages: {
     signIn: "/signin",
     error: "/error",
+    signOut: "/signout",
   },
-  providers: [
-    Google({
-      clientId: process.env.AUTH_GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.AUTH_GOOGLE_SECRET!,
-    }),
-    Github({
-      clientId: process.env.AUTH_GITHUB_CLIENT_ID!,
-      clientSecret: process.env.AUTH_GITHUB_SECRET!,
-    }),
-    Credentials({
-      name: "Credentials",
-      credentials: {
-        email: { label: "Email", type: "email", required: true },
-        password: { label: "Password", type: "password", required: true },
-      },
-      async authorize(credentials) {
-        // console.log(credentials)
-        if (!credentials?.email || !credentials?.password) {
-          return null;
-        }
-
-        const user = await signInWithCredentials({
-          email: credentials?.email,
-          password: credentials?.password,
-        });
-
-        // console.log({user})
-        return user;
-      },
-    }),
-  ],
+  providers: providers,
   callbacks: {
     async signIn({ account, profile }) {
       // console.log({account, profile})

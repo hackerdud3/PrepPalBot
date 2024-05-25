@@ -10,7 +10,6 @@ export interface IMessage extends Document {
 const messageSchema = new Schema({
   sender: { type: String, required: true },
   content: { type: String, required: true },
-  timestamp: { type: Date, default: Date.now },
 });
 
 const Message = mongoose.model<IMessage>("Message", messageSchema);

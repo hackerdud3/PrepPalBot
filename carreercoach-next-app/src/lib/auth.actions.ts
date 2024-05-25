@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import bcrypt from "bcrypt";
 import { nextauthOptions } from "@/lib/nextauth-options";
 import connectDB from "@/lib/mongodb";
-import User from "../models/user.model";
+import User from "./models/user.model";
 
 /* Get User Session*/
 export async function getUserSession() {

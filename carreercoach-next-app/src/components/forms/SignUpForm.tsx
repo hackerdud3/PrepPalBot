@@ -47,7 +47,7 @@ const SignUpForm = (prop: Props) => {
 
   return (
     <form onSubmit={handleSubmit}>
-      <Card className=" md:w-[500px] p-6 w-[300px]">
+      <Card className=" md:w-[500px] p-6 min-w-[350px]">
         <CardBody className="flex flex-col gap-6">
           <Input name="name" placeholder="Enter your name" />
           <Input placeholder="Enter your email" type="email" name="email" />

@@ -16,8 +16,6 @@ type Props = {};
 const ChatField = (props: Props) => {
   const [message, setMessages] = React.useState([]);
 
-  console.log(message);
-
   useEffect(() => {
     const fetchMessages = async () => {
       try {

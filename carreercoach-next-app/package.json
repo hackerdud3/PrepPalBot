@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.0.0",
+    "@mapbox/node-pre-gyp": "^1.0.11",
     "@nextui-org/button": "^2.0.31",
     "@nextui-org/input": "^2.1.21",
     "@nextui-org/navbar": "^2.0.30",
@@ -23,6 +24,7 @@
     "next": "14.2.3",
     "next-auth": "^4.24.7",
     "node": "^22.0.0",
+    "node-gyp": "^10.1.0",
     "react": "^18",
     "react-dom": "^18",
     "react-hook-form": "^7.51.4",
@@ -33,10 +35,12 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "css-loader": "^7.1.2",
     "eslint": "^8",
     "eslint-config-next": "14.2.3",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
+    "ts-loader": "^9.5.1",
     "typescript": "^5"
   }
 }

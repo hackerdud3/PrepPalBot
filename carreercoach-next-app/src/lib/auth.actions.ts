@@ -3,10 +3,11 @@
 import { getServerSession } from "next-auth/next";
 import { Account, Profile } from "next-auth";
 import { redirect } from "next/navigation";
-import bcrypt from "bcrypt";
 import { nextauthOptions } from "@/lib/nextauth-options";
 import connectDB from "@/lib/mongodb";
 import User from "./models/user.model";
+import { auth } from "@/auth";
+import bcrypt from "bcryptjs";
 
 /* Get User Session*/
 export async function getUserSession() {

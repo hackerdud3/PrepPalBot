@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import React from "react";
 import {
   Navbar,
   NavbarBrand,
@@ -9,17 +9,19 @@ import {
   Button,
 } from "@nextui-org/react";
 import type { NextRouter } from "next/router";
-
+import { redirect } from "next/navigation";
+import { signOut } from "next-auth/react";
+import { getClientSession } from "@/hooks/getClientSession";
 function NavigationBar() {
-  const showButtons = true;
-
+  const session = getClientSession();
+  console.log(session);
   return (
     <Navbar>
       <NavbarBrand>
         <p className="font-bold text-inherit">AI Coach</p>
       </NavbarBrand>
       <NavbarContent justify="end">
-        {showButtons && (
+        {!session?.user ? (
           <>
             <NavbarItem className="hidden lg:flex">
               <Link href="/signin">Login</Link>
@@ -30,12 +32,19 @@ function NavigationBar() {
               </Button>
             </NavbarItem>
           </>
+        ) : (
+          <NavbarItem>
+            <Button
+              color="primary"
+              variant="flat"
+              onClick={async () => {
+                await signOut();
+              }}
+            >
+              Logout
+            </Button>
+          </NavbarItem>
         )}
-        <NavbarItem>
-          <Button color="primary" variant="flat">
-            Logout
-          </Button>
-        </NavbarItem>
       </NavbarContent>
     </Navbar>
   );

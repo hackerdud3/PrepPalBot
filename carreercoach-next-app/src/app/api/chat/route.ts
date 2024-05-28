@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Chat, Message } from "@/lib/models/chat.model";
+import { Chat, IChat, Message } from "@/lib/models/chat.model";
 import connectDB from "@/lib/mongodb";
+import { isUtf8 } from "buffer";
+import { error } from "console";
+import { Content } from "next/font/google";
+import { getServerSession } from "next-auth";
+import { nextauthOptions } from "@/lib/nextauth-options";
+import { getAllChats } from "@/lib/actions/chat.actions";
+import { Types } from "mongoose";
 
 // export async function POST(request: NextRequest) {
 //   await connectDB();
@@ -11,21 +18,67 @@ import connectDB from "@/lib/mongodb";
 
 export async function POST(request: NextRequest) {
   await connectDB();
+  const searchParams = request.nextUrl.searchParams;
+  let isTrue = false;
+  if (searchParams.get("new") === "true") {
+    isTrue = true;
+  }
   const body = await request.json();
-  const sender = body.sender;
-  const content = body.content;
-  const userId = body.userId;
-  const chat = await Chat.create({ userId, messages: [{ sender, content }] });
+  const { sender, content, userId } = body;
+
+  if (!sender || !content || !userId) {
+    return NextResponse.json(
+      { error: "Missing required fields" },
+      { status: 400 }
+    );
+  }
+
+  let chat = null;
+  if (isTrue) {
+    const message = new Message({ sender, content });
+    chat = await Chat.create({ userId, messages: [message] });
+  }
   return NextResponse.json(chat, { status: 201 });
+}
+
+export async function PATCH(request: NextRequest) {
+  await connectDB();
+
+  const searchParams = request.nextUrl.searchParams;
+  const chatId = searchParams.get("chatId");
+  const body = await request.json();
+  const { sender, content, userId } = body;
+
+  const chat: IChat | null = await Chat.findById(chatId);
+
+  if (!chat) {
+    return NextResponse.json({ error: "Chat not found" }, { status: 404 });
+  }
+
+  const message = new Message({ sender, content });
+
+  chat.messages.push(message);
+  await chat.save();
+
+  return NextResponse.json(chat);
 }
 
 export async function GET(request: NextRequest) {
   await connectDB();
-  const searchParams = request.nextUrl.searchParams;
-  const chatId = "66517a5562bff8d854830b28";
-  const chat = await Chat.findById(chatId);
-  if (!chat) {
-    return NextResponse.json({ error: "Chat not found" }, { status: 404 });
+
+  const searchParam = request.nextUrl.searchParams;
+  const userId = searchParam?.get("userId");
+  if (!userId) {
+    return new NextResponse("Unauthorized", { status: 401 });
   }
-  return NextResponse.json(chat);
+  try {
+    const chats = await getAllChats({ userId });
+    return NextResponse.json(chats);
+  } catch (error) {
+    // Handle invalid ObjectId format (e.g., return a 400 Bad Request error)
+    return NextResponse.json(
+      { error: "Error fetching chats" },
+      { status: 400 }
+    );
+  }
 }

@@ -1,18 +1,22 @@
 import SideNav from "@/components/navbar/side-nav";
 import ChatField from "@/components/chat-ui/ChatField";
-import { NextPage } from "next";
-import { useRouter } from "next/navigation";
 import React from "react";
 
-export const Page: NextPage = () => {
+interface ChatIdParams {
+  id: string;
+}
+type Props = {
+  params: ChatIdParams;
+};
+
+const page = (props: Props) => {
   return (
     <div className="flex px-24 gap-8 relative h-full">
       <SideNav />
       <div>
-        <ChatField />
+        <ChatField chatId={props.params.id} />
       </div>
     </div>
   );
 };
-
-export default Page;
+export default page;

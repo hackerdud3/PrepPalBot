@@ -1,21 +1,20 @@
 "use client";
 import React, { FormEvent } from "react";
-import GitHubIcon from "@/../public/github-mark-white.svg";
 import { Input } from "@nextui-org/input";
 import { Button } from "@nextui-org/button";
-import { useState } from "react";
 import { Card, CardBody, Link } from "@nextui-org/react";
-import { signIn } from "next-auth/react";
 import * as z from "zod";
 import { userSignInValidation } from "@/lib/validations/auth";
 import Image from "next/image";
 import GoogleButton from "../oauth-buttons/google-button";
 import GithubButton from "../oauth-buttons/github-button";
+import { useRouter } from "next/navigation";
 
 type Props = {};
 
-const LoginForm = (prop: Props) => {
+export default function LoginForm(prop: Props) {
   const [isLoading, setLoading] = React.useState(false);
+  const router = useRouter();
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -34,6 +33,8 @@ const LoginForm = (prop: Props) => {
       });
 
       if (response.ok) {
+        console.log("successfully logged in");
+        router.push("/");
       }
     } catch (error) {}
   }
@@ -66,6 +67,4 @@ const LoginForm = (prop: Props) => {
       </Card>
     </form>
   );
-};
-
-export default LoginForm;
+}

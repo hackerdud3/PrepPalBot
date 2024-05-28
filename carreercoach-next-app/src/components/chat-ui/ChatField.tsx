@@ -10,70 +10,57 @@ import {
 import React, { useEffect } from "react";
 
 import ChatInput from "./ChatInput";
+import { IChat } from "@/lib/models/chat.model";
 
-type Props = {};
+type Props = {
+  chatId: string;
+};
 
 const ChatField = (props: Props) => {
-  const [message, setMessages] = React.useState([]);
+  const [messages, setMessages] = React.useState([]);
+  const [chat, setChat] = React.useState<IChat | null>(null);
 
   useEffect(() => {
-    const fetchMessages = async () => {
+    const fetchChat = async (chatId: string) => {
       try {
-        const response = await fetch("http://localhost:3000/api/message", {
-          method: "GET",
-        });
+        const response = await fetch(
+          `http://localhost:3000/api/chat?chatId=${chatId}`,
+          {
+            method: "GET",
+          }
+        );
         if (response.ok) {
           const data = await response.json();
-          setMessages(data);
+          setChat(data);
         } else {
-          console.error("Failed to fetch messages");
+          console.error("Failed to fetch chat");
         }
       } catch (error) {
         console.error("Error fetching messages:", error);
       }
     };
-
-    fetchMessages();
-  }, []); // Run only once on component mount
-
-  const createNewConversation = async () => {
-    try {
-      const response = await fetch("http://localhost:3000/api/conversation", {
-        method: "POST",
-      });
-      if (response.ok) {
-        console.log("New conversation created");
-      } else {
-        console.error("Failed to create new conversation");
-      }
-    } catch (error) {
-      console.error("Error creating new conversation:", error);
+    const chatId = localStorage.getItem("currentChatId");
+    if (chatId) {
+      fetchChat(chatId);
     }
-  };
+  }, []); // Run only once on component mount
 
   return (
     <div className="h-full">
       <Card className="md:w-[800px] w-[300px] absolute ">
-        <CardHeader>
+        <CardHeader className="flex justify-between">
           <div className="flex flex-col">
             <p className="text-md">Chat</p>
             <p className="text-small text-default-500">CareerCoach</p>
           </div>
-        </CardHeader>
-        <Divider />
-        <CardBody className="h-[65vh]">
-          <ul>
-            {message.map(
-              (message: { content: String; sender: String }, index: number) => (
-                <li key={index}>{message.content}</li>
-              )
-            )}
-          </ul>
-        </CardBody>
-        <Divider />
-        <CardFooter className="w-full relative flex gap-4">
-          <div>
-            <Button isIconOnly onClick={createNewConversation}>
+          <div className="flex gap-2 items-center justify-center">
+            <span>Create new chat</span>
+            <Button
+              isIconOnly
+              onClick={() => {
+                setChat(null);
+              }}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -90,7 +77,12 @@ const ChatField = (props: Props) => {
               </svg>
             </Button>
           </div>
-          <ChatInput />
+        </CardHeader>
+        <Divider />
+        <CardBody className="h-[65vh]"></CardBody>
+        <Divider />
+        <CardFooter className="w-full relative flex gap-4">
+          <ChatInput chat={chat} />
         </CardFooter>
       </Card>
     </div>

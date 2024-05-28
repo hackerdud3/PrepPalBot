@@ -7,11 +7,11 @@ import { Card, CardBody, Link } from "@nextui-org/react";
 import { useSession } from "next-auth/react";
 import * as z from "zod";
 import { userSignUpValidation } from "@/lib/validations/auth";
-import { signUpWithCredentials } from "@/lib/actions/auth.actions";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import GoogleButton from "../oauth-buttons/google-button";
 import GithubButton from "../oauth-buttons/github-button";
+import { signUpWithCredentials } from "@/lib/auth.actions";
 
 type Props = {};
 

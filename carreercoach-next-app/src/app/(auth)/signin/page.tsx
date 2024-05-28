@@ -3,6 +3,7 @@ export default function Login() {
   return (
     <div className=" flex items-center justify-center p-6">
       <LoginForm />
+      {/* <Login /> */}{" "}
     </div>
   );
 }

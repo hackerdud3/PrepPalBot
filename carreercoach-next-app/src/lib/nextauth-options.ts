@@ -27,10 +27,8 @@ export const providers = [
       if (!credentials?.email || !credentials?.password) {
         return null;
       }
-      const user = await signInWithCredentials({
-        email: credentials?.email,
-        password: credentials?.password,
-      });
+
+      const user = await signInWithCredentials(credentials);
       return user;
     },
   }),
@@ -38,29 +36,28 @@ export const providers = [
 
 export const nextauthOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
+  session: {
+    strategy: "jwt",
+    maxAge: 60 * 60 * 24 * 7,
+  },
   pages: {
-    signIn: "/signin",
-    error: "/error",
+    signIn: "/auth/signin",
     signOut: "/signout",
   },
   providers: providers,
   callbacks: {
     async signIn({ account, profile }) {
-      // console.log({account, profile})
       if (account?.type === "oauth" && profile) {
         return await signInWithOauth({ account, profile });
       }
       return true;
     },
     async jwt({ token, trigger, session }) {
-      // console.log({token})
-      // console.log({trigger, session})
       if (trigger === "update") {
         token.name = session.name;
       } else {
         if (token.email) {
           const user = await getUserByEmail({ email: token.email });
-          // console.log({user})
           token.name = user.name;
           token._id = user._id;
           token.role = user.role;
@@ -70,7 +67,6 @@ export const nextauthOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
-      // console.log({session, token})
       return {
         ...session,
         user: {

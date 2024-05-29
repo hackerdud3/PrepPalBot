@@ -19,11 +19,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <body className={inter.className}>
+      <body className={`${inter.className}`}>
         <AuthProvider>
           <UiProvider>
             <NavigationBar />
-            <main className="md:h-[80vh]">{children}</main>
+            <main className="h-[88vh] relative overflow-hidden z-0 w-full">
+              {children}
+            </main>
           </UiProvider>
         </AuthProvider>
       </body>

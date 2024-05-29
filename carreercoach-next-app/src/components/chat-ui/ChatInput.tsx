@@ -99,7 +99,7 @@ const ChatInput = (props: Props) => {
         value={message}
         onChange={handleChange}
         endContent={SendButton}
-        className="resize-none hide-scrollbar"
+        className="resize-none overflow-y-hidden flex justify-end  items-center"
       />
     </div>
   );

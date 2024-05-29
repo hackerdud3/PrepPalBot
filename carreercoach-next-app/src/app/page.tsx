@@ -60,7 +60,7 @@ export default function Home() {
   // Rest of your component logic (listbox and chip rendering)
 
   return (
-    <main className="inset-0 flex items-center justify-center">
+    <main className="inset-0 flex items-center justify-center ">
       <ListBoxWrapper>
         <ScrollShadow hideScrollBar className="w-full h-full">
           <Listbox

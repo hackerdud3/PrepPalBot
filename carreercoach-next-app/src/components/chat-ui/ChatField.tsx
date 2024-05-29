@@ -56,8 +56,8 @@ const ChatField = (props: Props) => {
   };
 
   return (
-    <div className="h-full">
-      <Card className="md:w-[800px] w-[300px] h-full">
+    <div className="h-full w-full pr-6">
+      <Card className="w-full h-full" radius="sm">
         <CardHeader className="flex justify-between">
           <div className="flex flex-col">
             <p className="text-md">Chat</p>
@@ -84,16 +84,16 @@ const ChatField = (props: Props) => {
           </div>
         </CardHeader>
         <Divider />
-        <CardBody className="flex-grow overflow-auto">
+        <CardBody className="flex-grow overflow-auto flex justify-start items-center">
           <ScrollShadow hideScrollBar orientation="horizontal">
             {messages?.map((item) => (
-              <div key={item?._id}>
+              <div className="w-[850px]" key={item?._id}>
                 <MessageChip message={item?.content} sender={item?.sender} />
               </div>
             ))}
           </ScrollShadow>
         </CardBody>
-        <div className="p-2 m-2">
+        <div className="px-4 pb-6 m-2">
           <ChatInput chat={chat} setMessages={setMessages} />
         </div>
       </Card>

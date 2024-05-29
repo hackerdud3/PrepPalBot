@@ -12,9 +12,9 @@ import type { NextRouter } from "next/router";
 import { redirect } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { getClientSession } from "@/hooks/getClientSession";
+
 function NavigationBar() {
   const session = getClientSession();
-  console.log(session);
   return (
     <Navbar>
       <NavbarBrand>

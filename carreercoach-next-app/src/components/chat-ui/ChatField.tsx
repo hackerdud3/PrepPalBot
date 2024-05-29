@@ -6,48 +6,58 @@ import {
   CardFooter,
   CardHeader,
   Divider,
+  ScrollShadow,
+  Textarea,
 } from "@nextui-org/react";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
 import ChatInput from "./ChatInput";
-import { IChat } from "@/lib/models/chat.model";
+import { IChat, IMessage } from "@/lib/models/chat.model";
+import MessageChip from "./MessageChip";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 type Props = {
   chatId: string;
 };
 
 const ChatField = (props: Props) => {
-  const [messages, setMessages] = React.useState([]);
+  const { chatId } = props;
   const [chat, setChat] = React.useState<IChat | null>(null);
+  const [messages, setMessages] = useState<IMessage[]>(chat?.messages || []);
+  const router = useRouter();
+  const { data: session, status } = useSession();
+  console.log(messages);
 
   useEffect(() => {
     const fetchChat = async (chatId: string) => {
       try {
-        const response = await fetch(
-          `http://localhost:3000/api/chat?chatId=${chatId}`,
-          {
-            method: "GET",
-          }
-        );
+        const response = await fetch(`/api/chat/${chatId}`, { method: "GET" });
         if (response.ok) {
           const data = await response.json();
-          setChat(data);
+          setChat(data?.chat);
+          setMessages(data?.chat?.messages);
         } else {
           console.error("Failed to fetch chat");
         }
       } catch (error) {
-        console.error("Error fetching messages:", error);
+        console.error("Error fetching chat:", error);
       }
     };
-    const chatId = localStorage.getItem("currentChatId");
-    if (chatId) {
+
+    if (chatId !== "new" && status === "authenticated") {
       fetchChat(chatId);
     }
-  }, []); // Run only once on component mount
+  }, [chatId, status]);
+
+  const handleCreateNewChat = () => {
+    router.push("/chat/new");
+    setChat(null);
+  };
 
   return (
     <div className="h-full">
-      <Card className="md:w-[800px] w-[300px] absolute ">
+      <Card className="md:w-[800px] w-[300px] h-full">
         <CardHeader className="flex justify-between">
           <div className="flex flex-col">
             <p className="text-md">Chat</p>
@@ -55,12 +65,7 @@ const ChatField = (props: Props) => {
           </div>
           <div className="flex gap-2 items-center justify-center">
             <span>Create new chat</span>
-            <Button
-              isIconOnly
-              onClick={() => {
-                setChat(null);
-              }}
-            >
+            <Button isIconOnly onClick={handleCreateNewChat}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -79,11 +84,18 @@ const ChatField = (props: Props) => {
           </div>
         </CardHeader>
         <Divider />
-        <CardBody className="h-[65vh]"></CardBody>
-        <Divider />
-        <CardFooter className="w-full relative flex gap-4">
-          <ChatInput chat={chat} />
-        </CardFooter>
+        <CardBody className="flex-grow overflow-auto">
+          <ScrollShadow hideScrollBar orientation="horizontal">
+            {messages?.map((item) => (
+              <div key={item?._id}>
+                <MessageChip message={item?.content} sender={item?.sender} />
+              </div>
+            ))}
+          </ScrollShadow>
+        </CardBody>
+        <div className="p-2 m-2">
+          <ChatInput chat={chat} setMessages={setMessages} />
+        </div>
       </Card>
     </div>
   );

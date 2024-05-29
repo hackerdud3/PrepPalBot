@@ -23,7 +23,7 @@ export default function RootLayout({
         <AuthProvider>
           <UiProvider>
             <NavigationBar />
-            <main className="min-h-[80vh]">{children}</main>
+            <main className="md:h-[80vh]">{children}</main>
           </UiProvider>
         </AuthProvider>
       </body>

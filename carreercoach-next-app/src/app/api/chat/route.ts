@@ -38,29 +38,7 @@ export async function POST(request: NextRequest) {
     const message = new Message({ sender, content });
     chat = await Chat.create({ userId, messages: [message] });
   }
-  return NextResponse.json(chat, { status: 201 });
-}
-
-export async function PATCH(request: NextRequest) {
-  await connectDB();
-
-  const searchParams = request.nextUrl.searchParams;
-  const chatId = searchParams.get("chatId");
-  const body = await request.json();
-  const { sender, content, userId } = body;
-
-  const chat: IChat | null = await Chat.findById(chatId);
-
-  if (!chat) {
-    return NextResponse.json({ error: "Chat not found" }, { status: 404 });
-  }
-
-  const message = new Message({ sender, content });
-
-  chat.messages.push(message);
-  await chat.save();
-
-  return NextResponse.json(chat);
+  return NextResponse.json({ message: chat.messages[0] }, { status: 201 });
 }
 
 export async function GET(request: NextRequest) {

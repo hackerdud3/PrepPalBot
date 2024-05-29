@@ -1,4 +1,3 @@
-import message from "@/components/chat-ui/MessageChip";
 import mongoose, { Document, Schema } from "mongoose";
 
 export interface IMessage extends Document {

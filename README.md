@@ -1,4 +1,4 @@
-# Career Coach Chatbot
+# Prep Pal - A Career Coach Chatbot
 
 ## Overview
 Welcome to Career Coach, an AI-powered chatbot designed to assist you with Interview questions and provides valuable guidance. Whether you're exploring career options, seeking job search advice, or looking for tips on professional development, Career Coach is here to help!

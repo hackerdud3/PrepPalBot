@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from mongoDBclient import client
 from langchain_openai import ChatOpenAI
 from rag import get_index_for_pdf
-from url_loader_and_splitter import get_url_chunks
+from url_loader_and_splitter import get_url_chunks, get_url_index
 from streamlit_chat import message
 from langchain.chains.llm import LLMChain
 from url_loader_and_splitter import questions_text_splitter
@@ -16,7 +16,9 @@ from langchain.chains.combine_documents.stuff import StuffDocumentsChain
 from langchain.chains.conversation.memory import ConversationBufferWindowMemory
 from langchain.chains.summarize import load_summarize_chain
 from langchain.chains.combine_documents.map_reduce import MapReduceDocumentsChain
+from langchain.chains.combine_documents.stuff import create_stuff_documents_chain
 from langchain.prompts import SystemMessagePromptTemplate, HumanMessagePromptTemplate, ChatPromptTemplate, MessagesPlaceholder, PromptTemplate
+
 load_dotenv()
 
 # MongoDB collection
@@ -34,7 +36,6 @@ response_types = {
         You are a helpful Assistant who will train user on personalized interview questions. You will provide the best possible answer to the interview question given to you based on the context passed to you.
 """
 }
-
 
 prompt_template = """
 As a helpful Assistant, your role is to provide tailored answers to users' interview questions. Craft the best possible answer based on the given context.
@@ -64,7 +65,6 @@ communication process. It was challenging, but by fostering a collaborative envi
 work on time. This experience taught me the importance of adaptability and clear communication in crisis management.”
 """
 
-
 system_msg_template = SystemMessagePromptTemplate.from_template(
     template=prompt_template, input_variables=["input"])
 
@@ -82,64 +82,53 @@ output_type = ""
 
 
 def initialize_openai_client():
-    return ChatOpenAI(api_key=os.getenv("API_KEY"), model="gpt-3.5-turbo-0125", temperature=0.2)
+    return ChatOpenAI(api_key=os.getenv("OPENAI_API_KEY"), model="gpt-3.5-turbo-0125", temperature=0.2)
+
+# Create conversation chain
 
 
 def create_conversation_chain(llm):
     return ConversationChain(
         memory=st.session_state.buffer_memory, prompt=chat_prompt_template, llm=llm, verbose=True)
 
-# Ask a question
+# Input to ask a question
 
 
 def ask_question():
     return st.chat_input("Ask a question", key="input")
 
+# Generate question from the URL using stuff documents chain
 
-def get_summarized_questions(url_chunks: List[str]):
+
+def generate_questions_from_stuffed_docs(url_chunks: List[str]):
     llm = initialize_openai_client()
 
-    map_prompt = """
-    You are helpful AI assistant that trains the user on personalized interview questions.
-    The below context is from a Interview questions website. Please identify only intreview questions and its answers.
+    prompt_template = """
+    You are a helpful assistant tasked with training users on personalized interview questions. Your goal is to identify 10 interview questions and provide corresponding answers based on the context provided below, in a sequential manner.
 
-    % START OF CONTEXT
-    {text}
-    % END OF CONTEXT
+    Provide questions only if the context is relevant to interviews.
 
-    Your Response: """
+    Your response should follow this format:
+    For example:
+    1. Interviewer: Tell me about yourself and your qualifications?
+    \nAnswer: Certainly! Over the past three years, I've been working as a bookkeeper, where I've managed accounts payable and receivable, along with payroll oversight. I take pride in my ability to identify and resolve discrepancies, leading to substantial cost savings for my company. Recently, I earned my CPA degree, and I'm confident that my expertise in bookkeeping, coupled with my attention to detail, aligns well with the requirements of the public accountant role at your organization.
 
-    map_prompt_template = PromptTemplate(
-        template=map_prompt, input_variables=["text"])
+    %CONTEXT
+    {context}
 
-    combined_prompt = """
-    Combine the context provide all the interview questions and answers based on the context.
-    Do not make anything up, only use information provided in the context.
-
-    % START OF CONTEXT
-    {text}
-    % END OF CONTEXT
+    Interview questions and answers:
     """
+    stuff_prompt = PromptTemplate.from_template(prompt_template)
 
-    combined_prompt_template = PromptTemplate(
-        template=combined_prompt, input_variables=["text"])
+    stuff_chain = create_stuff_documents_chain(llm=llm, prompt=stuff_prompt)
 
-    # Load summarization chain
-    chain = load_summarize_chain(llm,
-                                 chain_type="map_reduce",
-                                 map_prompt=map_prompt_template,
-                                 combine_prompt=combined_prompt_template,
-                                 )
+    output = stuff_chain.invoke({"context": url_chunks})
 
-    output = chain({"input_documents": url_chunks})
-
-    return output["output_text"]
+    return output
 
 
 # Generate questions
-
-
-def generate_questions(url_chunks: List[str]):
+def generate_questions_from_website(url_chunks: List[str]):
     llm = initialize_openai_client()
 
     map_llm_template = """You are a helpful assistant who will train users on personalized interview questions. Your goal is to identify only interview questions and its answers in the following context:
@@ -148,7 +137,8 @@ def generate_questions(url_chunks: List[str]):
         Provide questions if only relavant context is passed.
 
         Your response should be in this fashsion:
-        1. Interviewer: Tell me about yourself and your qualifications.
+        For example:
+        1. Interviewer: Tell me about yourself and your qualifications?.
         Answer: Certainly! Over the past three years, I've been working as a bookkeeper, where I've managed accounts payable and receivable, along with payroll oversight. I take pride in my ability to identify and resolve discrepancies, leading to substantial cost savings for my company. Recently, I earned my CPA degree, and I'm confident that my expertise in bookkeeping, coupled with my attention to detail, aligns well with the requirements of the public accountant role at your organization.
 
         Interview questions and answers:"""
@@ -167,6 +157,7 @@ def generate_questions(url_chunks: List[str]):
         llm_chain=reduce_llm_chain,
         document_variable_name="context"
     )
+
     reduce_doc_chain = ReduceDocumentsChain(
         combine_documents_chain=combined_documents_chain,
         collapse_documents_chain=combined_documents_chain,
@@ -217,16 +208,19 @@ def get_conversation_string():
 
 
 def main():
-    st.title("Career Coach")
+    st.title("💬 Prep Pal")
+    st.caption("🚀 A carreer chatbot powered by GPT-4o")
 
     st.session_state["user_name"] = st.text_input(
         placeholder="User Name", label="User Name")
-
     pdf_files = upload_pdf_files()
-
+    st.write("Upload your resume to get started")
     isUploaded = st.button("Summarize Resume")
 
-    input_urls()
+    with st.sidebar:
+        "[View the source code](https://github.com/hackerdud3/PrepPalBot)"
+        "[![View GitHub source code](https://github.com/codespaces/badge.svg)](https://github.com/hackerdud3/PrepPalBot)"
+        input_urls()
 
     if "responses" not in st.session_state:
         st.session_state["responses"] = ["How can I assist you today?"]
@@ -249,10 +243,13 @@ def main():
         st.session_state.buffer = ConversationBufferWindowMemory(
             k=0, return_messages=True)
 
-    # Upload PDF files
+    if "summarized_pdf" in st.session_state:
+        st.markdown("### Resume Summary:")
+        st.warning(st.session_state["summarized_pdf"])
 
     # Get index for
     if isUploaded and pdf_files is not None:
+        # If a new file is uploaded then we need to reset the responses and requests
         st.session_state["responses"] = ["How can I assist you today?"]
         st.session_state["requests"] = []
 
@@ -261,16 +258,18 @@ def main():
             return
 
         with st.spinner("Summarizing your resume..."):
-            time.sleep(4)
+            time.sleep(3)
 
         resume_info = {
             "user_name": st.session_state["user_name"],
             "file_name": pdf_files.name,
         }
+
         inserted_data = collection.insert_one(resume_info)
         resume_id = inserted_data.inserted_id
         st.session_state["resume_id"] = str(resume_id)
         file_content = pdf_files.getvalue()
+
         with st.spinner("Uploading your resume to database..."):
             time.sleep(3)
 
@@ -284,9 +283,8 @@ def main():
 
         st.success("Resume uploaded successfully")
         # Store resume information in resumes collection
-    else:
-        st.error("Please upload a PDF file")
-
+    elif isUploaded is True and pdf_files is None:
+        st.error("Please upload a resume to continue")
 
     # Url loader
     process_urls = st.sidebar.button("Generate Interview Questions")
@@ -302,18 +300,19 @@ def main():
                 urls[0], st.session_state["user_name"])
             url_chunks = url_chunks[:5]
 
-            questions_and_answers = generate_questions(url_chunks)
+            with st.spinner("Generating questions..."):
 
-            st.session_state["generated_questions"] = questions_and_answers
+                questions_and_answers = generate_questions_from_stuffed_docs(
+                    url_chunks)
 
-            q_and_a_docs = questions_text_splitter(
-                questions_and_answers, urls[0], st.session_state["user_name"])
-            # url_index = get_url_index(q_and_a_docs)
-        else:
+                st.session_state["generated_questions"] = questions_and_answers
+
+        elif process_urls is True and len(urls) == 0:
             st.sidebar.error(
                 "Please enter atleast one URL to generate questions")
+
     except Exception as e:
-        st.error(f"Error processing URL")
+        st.error(e)
 
     if "generated_questions" in st.session_state:
         st.sidebar.markdown("### Output:")
@@ -326,7 +325,6 @@ def main():
         question = ask_question()
         if question:
             with st.spinner("Typing..."):
-                conversation_string = get_conversation_string()
                 # Similarity search
                 v_index = st.session_state["vector_index"]
                 resume_id = st.session_state["resume_id"]

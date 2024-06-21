@@ -1,8 +1,8 @@
 import requests
 import streamlit as st
 from langchain.docstore.document import Document
-from langchain.vectorstores.mongodb_atlas import MongoDBAtlasVectorSearch
-from langchain_openai import OpenAIEmbeddings
+from langchain_community.vectorstores import MongoDBAtlasVectorSearch
+from langchain_community.embeddings import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from markdownify import markdownify as md
 from bs4 import BeautifulSoup
@@ -53,7 +53,7 @@ def url_text_splitter(data: str, url: str, username: str):
 
 def questions_text_splitter(data: str, url: str, username: str):
 
-    splitter = RecursiveCharacterTextSplitter(chunk_size=400, separators=[
+    splitter = RecursiveCharacterTextSplitter(chunk_size=2000, separators=[
                                               "\n\n", "\d+\."], chunk_overlap=0)
     metadata = {
         "url": url,

@@ -219,7 +219,7 @@ def main():
 
     with st.sidebar:
         "[View the source code](https://github.com/hackerdud3/PrepPalBot)"
-        "[![View GitHub source code](https://github.com/codespaces/badge.svg)](https://github.com/hackerdud3/PrepPalBot)"
+        "[![View GitHub source code](https://github.com/codespaces/badge.svg)](https://organic-train-6vxgw7v674jfrr4r.github.dev/)"
         input_urls()
 
     if "responses" not in st.session_state:

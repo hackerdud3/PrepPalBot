@@ -1,7 +1,7 @@
-# Prep Pal - A Career Coach Chatbot
+# Prep Pal - A Career Coach Copilot
 
 ## Overview
-Welcome to Prep Pal Career Coach, an AI-powered chatbot designed to assist you with Interview questions and provides valuable guidance. Whether you're exploring career options, seeking job search advice, or looking for tips on professional development, Career Coach is here to help!
+Welcome to Prep Pal Career Coach, an AI-powered copilot designed to assist you with Interview questions and provides valuable guidance. Whether you're exploring career options, seeking job search advice, or looking for tips on professional development, Career Coach is here to help!
 
 ## Features
 - **Personalized Guidance**: Prep Pal uses advanced AI algorithms to tailor responses to your specific needs and questions.
@@ -29,8 +29,8 @@ Welcome to Prep Pal Career Coach, an AI-powered chatbot designed to assist you w
     streamlit run main.py
     ```
 2. Open your web browser and go to the provided URL to access Prep Pal.
-3. Start chatting with Career Coach by uploading "your-resume".pdf. Type your interview questions and the chatbot will train you on interview questions.
-4. You can also provide the URL of any interview questions website. The chatbot will extract and analyze interview questions and answers from the website. This information will be utilized to enhance the chatbot's responses when providing tailored answers based on your resume.
+3. Start chatting with Career Coach by uploading "your-resume".pdf. Type your interview questions and the copilot will train users on interview questions.
+4. You can also provide the URL of any interview questions website. The application will extract and analyze interview questions and answers from the website. This information will be utilized to enhance the copilot's responses when providing tailored answers based on your resume.
 
 ## Contributing
 Contributions are welcome! If you'd like to contribute to Prep Pal, please follow these steps:

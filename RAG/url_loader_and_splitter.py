@@ -45,7 +45,7 @@ def url_text_splitter(data: str, url: str, username: str):
                                               "\n\n", "\n", ".", "!", ",", " ", "", "|", "\d+\."], chunk_overlap=10)
     metadata = {
         "url": url,
-        "username": username
+        "username": username,
     }
     chunks = splitter.create_documents([data], [metadata])
     return chunks

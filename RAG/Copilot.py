@@ -9,7 +9,6 @@ from dotenv import load_dotenv
 from mongodb_client import client
 from langchain_openai import ChatOpenAI
 from resume_formatter import format_resume
-from prompts.system_message_prompt import system_message_prompt
 from langchain.chains.conversation.memory import ConversationBufferWindowMemory
 from langchain_openai.embeddings import OpenAIEmbeddings
 from langchain_pinecone import PineconeVectorStore
@@ -158,7 +157,7 @@ def find_match(question: str, resume_id: str) -> list[dict]:
 def get_response(question: str, cleaned_job_description: str):
     # System message template
     system_msg_template = SystemMessagePromptTemplate.from_template(
-        template=system_message_prompt
+        template=os.getenv("SYSTEM_PROMPT")
     )
 
     # Human message template

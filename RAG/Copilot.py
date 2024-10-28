@@ -22,13 +22,14 @@ from langchain.prompts import (
     MessagesPlaceholder,
     PromptTemplate,
 )
+from prompts.system_message_prompt import system_message_prompt
 from langchain_core.output_parsers import StrOutputParser
 
 try:
     stopwords.words("english")
 except LookupError:
     nltk.download("stopwords")
-    
+
 load_dotenv()
 
 # MongoDB database and collection
@@ -120,6 +121,8 @@ def get_session_history(session_id: str) -> InMemoryChatMessageHistory:
         )
     return st.session_state["store"][session_id]
 
+def reset_session(session_id: str):
+    st.session_state["store"][session_id] = InMemoryChatMessageHistory()
 
 # Find match using Pinecone
 def find_match(question: str, resume_id: str) -> list[dict]:
@@ -159,7 +162,7 @@ def find_match(question: str, resume_id: str) -> list[dict]:
 def get_response(question: str, cleaned_job_description: str):
     # System message template
     system_msg_template = SystemMessagePromptTemplate.from_template(
-        template=os.getenv("SYSTEM_PROMPT")
+        template=system_message_prompt
     )
 
     # Human message template
@@ -176,7 +179,7 @@ def get_response(question: str, cleaned_job_description: str):
     llm = initialize_finetuned_openai_client()
     # LLM chain
     chain = prompt = prompt | llm | StrOutputParser()
-    # chain = LLMChain(prompt=chat_prompt, llm=initialize_finetuned_openai_client)
+
     chain_with_message_history = RunnableWithMessageHistory(
         chain,
         get_session_history,
@@ -187,12 +190,12 @@ def get_response(question: str, cleaned_job_description: str):
     inputs = {
         "input": question,
         "job_description": cleaned_job_description,
-        "resume": st.session_state.resume_text,
+        "resume": st.session_state["resume_text"],
     }
 
     return chain_with_message_history.stream(
         inputs,
-        {"configurable": {"session_id": "1"}},
+        {"configurable": {"session_id": st.session_state["user_name"]}},
     )
 
 
@@ -220,21 +223,21 @@ def main():
             label="Upload Resume", type=["pdf"], accept_multiple_files=False
         )
         uploaded_resume = st.button("Upload Resume")
-
         if uploaded_resume and pdf_files is not None:
             if st.session_state["user_name"] == "":
                 st.info("Please enter your username to continue")
                 st.stop()
                 return
-
+            reset_session(st.session_state["user_name"])
             st.session_state["messages"] = INITIAL_MESSAGE
             with st.spinner("Uploading your resume to the database..."):
                 text = parse_pdf(pdf_files)  # Parse resume text
                 st.session_state["resume_text"] = clean_resume(text)
-                formatted_resume = format_resume(text)  # Format resume using LLM
-                st.session_state["formatted_resume"] = (
-                    formatted_resume  # Store formatted resume
-                )
+                st.write(st.session_state["resume_text"])
+                # formatted_resume = format_resume(text)  # Format resume using LLM
+                # st.session_state["formatted_resume"] = (
+                #     formatted_resume  # Store formatted resume
+                # )
                 # Resume metadata
                 resume_info = {
                     "user_name": st.session_state["user_name"],
@@ -244,10 +247,13 @@ def main():
                 inserted_data = collection.insert_one(resume_info)
                 resume_id = inserted_data.inserted_id  # Resume Id
                 st.session_state["resume_id"] = str(resume_id)
-                pinecone_vector_store(
-                    formatted_resume, str(resume_id)
-                )  # Store it in vectore database
+                # pinecone_vector_store(
+                #     formatted_resume, str(resume_id)
+                # )  # Store it in vectore database
                 st.sidebar.success("Resume uploaded successfully")
+        
+        st.write(st.session_state["store"][st.session_state["user_name"]])
+        
 
     # Title
     st.title("💬 Prep Pal")
@@ -289,7 +295,6 @@ def main():
         if job_description == "":
             st.info("Please enter job description")
             st.stop()
-
         st.session_state.messages.append({"role": "user", "content": question})
         st.chat_message("user").write(question)
         with st.chat_message("assistant"):

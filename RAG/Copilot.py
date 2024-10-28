@@ -24,8 +24,11 @@ from langchain.prompts import (
 )
 from langchain_core.output_parsers import StrOutputParser
 
-# Ensure stopwords are downloaded
-nltk.download("stopwords")
+try:
+    stopwords.words("english")
+except LookupError:
+    nltk.download("stopwords")
+    
 load_dotenv()
 
 # MongoDB database and collection

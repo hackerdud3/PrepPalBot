@@ -11,7 +11,7 @@ pinecone_api_key = os.environ.get("PINECONE_API_KEY")
 
 pc = Pinecone(api_key=pinecone_api_key)
 
-index_name = "pdf-embeddings" 
+index_name = "pdf-embeddings"
 
 existing_indexes = [index_info["name"] for index_info in pc.list_indexes()]
 

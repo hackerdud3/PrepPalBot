@@ -15,7 +15,6 @@ from langchain_pinecone import PineconeVectorStore
 from langchain.chains.llm import LLMChain
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_core.chat_history import InMemoryChatMessageHistory
-from tests.ragas_relevancy import calculate_relevancy
 from langchain.prompts import (
     SystemMessagePromptTemplate,
     HumanMessagePromptTemplate,

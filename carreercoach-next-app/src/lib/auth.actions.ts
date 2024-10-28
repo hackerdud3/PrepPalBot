@@ -1,5 +1,4 @@
-"use server"; // 開頭統一加上"use server"即可
-
+"use server";
 import { getServerSession } from "next-auth/next";
 import { Account, Profile } from "next-auth";
 import { redirect } from "next/navigation";

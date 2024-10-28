@@ -7,6 +7,7 @@ import {
   signInWithCredentials,
 } from "@/lib/auth.actions";
 import Github from "next-auth/providers/github";
+import { redirect } from "next/dist/server/api-utils";
 
 export const providers = [
   Google({
@@ -27,7 +28,6 @@ export const providers = [
       if (!credentials?.email || !credentials?.password) {
         return null;
       }
-
       const user = await signInWithCredentials(credentials);
       return user;
     },

@@ -1,32 +1,17 @@
 import requests
-import streamlit as st
 from langchain.docstore.document import Document
 from langchain_community.vectorstores import MongoDBAtlasVectorSearch
-from langchain_community.embeddings import OpenAIEmbeddings
+from langchain_openai.embeddings import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from markdownify import markdownify as md
 from bs4 import BeautifulSoup
 from typing import List
-from mongoDBclient import client
-
-
-main_placeholder = st.empty()
+from mongodb_client import client
 
 db_name = "careercoach"
 collection_name = "url_embeddings"
 atlas_collection = client[db_name][collection_name]
 vector_search_index = "url_index"
-
-
-# def load_data_from_urls(urls: List[str]):
-#     try:
-#         main_placeholder.text("Loading data from urls...")
-#         loader = SeleniumURLLoader(urls=urls)
-#         data = loader.load()
-#     except Exception as e:
-#         main_placeholder.text(
-#             "Error loading data from urls. Please try again.")
-#     return data
 
 
 def get_info_from_url(url: str):
@@ -41,8 +26,11 @@ def get_info_from_url(url: str):
 
 
 def url_text_splitter(data: str, url: str, username: str):
-    splitter = RecursiveCharacterTextSplitter(chunk_size=4000, separators=[
-                                              "\n\n", "\n", ".", "!", ",", " ", "", "|", "\d+\."], chunk_overlap=10)
+    splitter = RecursiveCharacterTextSplitter(
+        chunk_size=4000,
+        separators=["\n\n", "\n", ".", "!", ",", " ", "", "|", "\d+\."],
+        chunk_overlap=10,
+    )
     metadata = {
         "url": url,
         "username": username,
@@ -52,13 +40,10 @@ def url_text_splitter(data: str, url: str, username: str):
 
 
 def questions_text_splitter(data: str, url: str, username: str):
-
-    splitter = RecursiveCharacterTextSplitter(chunk_size=2000, separators=[
-                                              "\n\n", "\d+\."], chunk_overlap=0)
-    metadata = {
-        "url": url,
-        "username": username
-    }
+    splitter = RecursiveCharacterTextSplitter(
+        chunk_size=2000, separators=["\n\n", "\d+\."], chunk_overlap=0
+    )
+    metadata = {"url": url, "username": username}
     chunks = splitter.create_documents([data], [metadata])
     return chunks
 

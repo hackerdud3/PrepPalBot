@@ -4,7 +4,6 @@ import streamlit as st
 import nltk
 import time
 from nltk.corpus import stopwords
-from langchain.docstore.document import Document
 from rag_chain import parse_pdf
 from resume_summarize_chain import load_summarize
 from langchain_openai import ChatOpenAI
@@ -69,11 +68,6 @@ def main():
         if resume_pdf is None:
             st.error("Please upload resume")
             has_error = True
-
-        # # Username validation
-        # if st.session_state["username"] == "":
-        #     st.error("Please enter username")
-        #     has_error = True
 
         if has_error:
             return

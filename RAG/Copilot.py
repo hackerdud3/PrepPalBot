@@ -162,8 +162,7 @@ def find_match(question: str, resume_id: str) -> list[dict]:
 def get_response(question: str, cleaned_job_description: str):
     # System message template
     system_msg_template = SystemMessagePromptTemplate.from_template(
-        template=system_message_prompt
-    )
+        template=os.getenv("SYSTEM_PROMPT"))
 
     # Human message template
     human_msg_template = HumanMessagePromptTemplate.from_template(template="{input}")

@@ -3,9 +3,9 @@ import re
 import time
 import nltk
 import streamlit as st
-from rag_chain import parse_pdf, pinecone_vector_store
 from nltk.corpus import stopwords
 from dotenv import load_dotenv
+from rag_chain import parse_pdf, pinecone_vector_store
 from mongodb_client import client
 from langchain_openai import ChatOpenAI
 from resume_formatter import format_resume
@@ -24,6 +24,8 @@ from langchain.prompts import (
 )
 from langchain_core.output_parsers import StrOutputParser
 
+# Ensure stopwords are downloaded
+nltk.download("stopwords")
 load_dotenv()
 
 # MongoDB database and collection
@@ -84,8 +86,6 @@ def clean_resume(text: str) -> str:
     Returns:
         str: The cleaned job description.
     """
-    # Ensure stopwords are downloaded
-    nltk.download("stopwords")
     # Remove newlines and extra spaces
     cleaned_resume = re.sub(r"\n+", " ", text)
     return cleaned_resume

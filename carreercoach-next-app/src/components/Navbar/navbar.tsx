@@ -1,5 +1,5 @@
-"use client";
-import React from "react";
+import { getServerSession } from "next-auth";
+import { signOut } from "@/auth";
 import {
   Navbar,
   NavbarBrand,
@@ -7,16 +7,23 @@ import {
   NavbarItem,
   Link,
   Button,
+  DropdownTrigger,
+  Dropdown,
+  DropdownMenu,
+  DropdownItem,
 } from "@nextui-org/react";
-import type { NextRouter } from "next/router";
-import { redirect } from "next/navigation";
-import { signOut } from "next-auth/react";
-import { getClientSession } from "@/hooks/getClientSession";
+import AvatarDropDown from "./AvatarDropDown";
 
-function NavigationBar() {
-  const session = getClientSession();
+export default async function NavBar() {
+  const session = await getServerSession();
+
   return (
-    <Navbar>
+    <Navbar
+      isBlurred={false}
+      isBordered={false}
+      maxWidth="full"
+      className="px-14 bg-transparent"
+    >
       <NavbarBrand>
         <p className="font-bold text-inherit">AI Coach</p>
       </NavbarBrand>
@@ -33,20 +40,9 @@ function NavigationBar() {
             </NavbarItem>
           </>
         ) : (
-          <NavbarItem>
-            <Button
-              color="primary"
-              variant="flat"
-              onClick={async () => {
-                await signOut();
-              }}
-            >
-              Logout
-            </Button>
-          </NavbarItem>
+          <AvatarDropDown user={session.user} />
         )}
       </NavbarContent>
     </Navbar>
   );
 }
-export default NavigationBar;

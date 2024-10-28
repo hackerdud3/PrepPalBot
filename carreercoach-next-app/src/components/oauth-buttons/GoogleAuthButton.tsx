@@ -11,7 +11,7 @@ const GoogleButton = (props: Props) => {
     <div>
       <Button
         onClick={async () => {
-          await signIn("google");
+          await signIn("google", { callbackUrl: "/" });
         }}
       >
         <div className="w-8 p-1">

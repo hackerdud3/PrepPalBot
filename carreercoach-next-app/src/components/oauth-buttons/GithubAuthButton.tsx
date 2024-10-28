@@ -11,7 +11,7 @@ const GithubButton = (props: Props) => {
     <div>
       <Button
         onClick={async () => {
-          await signIn("github");
+          await signIn("github", { callbackUrl: "/" });
         }}
       >
         <div className="w-8 p-1">

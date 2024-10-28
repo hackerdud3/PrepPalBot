@@ -233,7 +233,6 @@ def main():
             with st.spinner("Uploading your resume to the database..."):
                 text = parse_pdf(pdf_files)  # Parse resume text
                 st.session_state["resume_text"] = clean_resume(text)
-                st.write(st.session_state["resume_text"])
                 # formatted_resume = format_resume(text)  # Format resume using LLM
                 # st.session_state["formatted_resume"] = (
                 #     formatted_resume  # Store formatted resume
@@ -251,8 +250,6 @@ def main():
                 #     formatted_resume, str(resume_id)
                 # )  # Store it in vectore database
                 st.sidebar.success("Resume uploaded successfully")
-        
-        st.write(st.session_state["store"][st.session_state["user_name"]])
         
 
     # Title

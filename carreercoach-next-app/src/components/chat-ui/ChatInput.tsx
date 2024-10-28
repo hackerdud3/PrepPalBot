@@ -63,14 +63,14 @@ const ChatInput = (props: Props) => {
   };
 
   const SendButton = (
-    <div className="flex flex-col justify-center items-end h-full">
+    <div className="h-full flex felx-col justify-center items-end">
       <Button
         variant="shadow"
         color="primary"
         title="send button"
         isIconOnly
         onClick={handleSend}
-        className="ml-3"
+        className="ml-3 "
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -91,7 +91,7 @@ const ChatInput = (props: Props) => {
   );
 
   return (
-    <div className="w-full flex flex-col ">
+    <div className="w-full flex flex-col h-full">
       <Textarea
         placeholder="Enter interview question..."
         minRows={1}
@@ -99,7 +99,7 @@ const ChatInput = (props: Props) => {
         value={message}
         onChange={handleChange}
         endContent={SendButton}
-        className="resize-none hide-scrollbar"
+        className="resize-none scrollbar-hide "
       />
     </div>
   );

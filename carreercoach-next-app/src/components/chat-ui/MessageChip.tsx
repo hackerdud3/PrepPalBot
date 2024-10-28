@@ -16,8 +16,13 @@ const MessageChip = (props: Props) => {
       <div>
         <Avatar name={userName} />
       </div>
-
-      <span className="mt-[8px]">{props.message}</span>
+      <span
+        className={`mt-[8px] ${
+          props.sender === "bot" ? "items-end" && "bg-blue-500" : "items-start"
+        }`}
+      >
+        {props.message}
+      </span>
     </div>
   );
 };

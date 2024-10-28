@@ -12,7 +12,6 @@ from resume_formatter import format_resume
 from langchain.chains.conversation.memory import ConversationBufferWindowMemory
 from langchain_openai.embeddings import OpenAIEmbeddings
 from langchain_pinecone import PineconeVectorStore
-from langchain.chains.llm import LLMChain
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_core.chat_history import InMemoryChatMessageHistory
 from langchain.prompts import (
@@ -22,7 +21,6 @@ from langchain.prompts import (
     MessagesPlaceholder,
     PromptTemplate,
 )
-from prompts.system_message_prompt import system_message_prompt
 from langchain_core.output_parsers import StrOutputParser
 
 try:

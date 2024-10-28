@@ -2,6 +2,7 @@ import os
 from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain.chains.llm import LLMChain
+from langchain_core.output_parsers import StrOutputParser
 
 
 def format_resume(text: str) -> str:
@@ -15,8 +16,8 @@ def format_resume(text: str) -> str:
 
     prompt = PromptTemplate(input_variables=["text"], template=prompt_template)
 
-    llm_chain = LLMChain(llm=llm, prompt=prompt)
+    chain = prompt | llm | StrOutputParser()
 
-    formatted_resume = llm_chain.run({"text": text})
+    formatted_resume = chain.invoke({"text": text})
 
     return formatted_resume

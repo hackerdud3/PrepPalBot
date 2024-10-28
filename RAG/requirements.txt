@@ -1,9 +1,9 @@
-﻿streamlit
+﻿cmake
+streamlit
 python-dotenv
 pymongo
 langchain_openai
 pypdf
-pypdf2
 langchain
 langchain_mongodb
 markdownify
@@ -14,10 +14,6 @@ langchain-pinecone
 pinecone
 langchain-openai
 langchain-text-splitters
-snowflake_snowpark_python
-snowflake-snowpark-python[pandas]
 nltk
-langchain_experimental
-spacy
 pinecone-client[grpc]
 ragas

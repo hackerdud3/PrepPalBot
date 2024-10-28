@@ -6,8 +6,8 @@ import { Card, CardBody, Link } from "@nextui-org/react";
 import * as z from "zod";
 import { userSignInValidation } from "@/lib/validations/auth";
 import Image from "next/image";
-import GoogleButton from "../oauth-buttons/google-button";
-import GithubButton from "../oauth-buttons/github-button";
+import GoogleButton from "../oauth-buttons/GoogleAuthButton";
+import GithubButton from "../oauth-buttons/GithubAuthButton";
 import { useRouter } from "next/navigation";
 
 type Props = {};
@@ -21,7 +21,7 @@ export default function LoginForm(prop: Props) {
 
     const formData = new FormData(event.currentTarget);
     const email = formData.get("email") as string;
-    const password = formData.get("pasword") as string;
+    const password = formData.get("password") as string;
 
     try {
       const response = await fetch("/api/auth/signin", {

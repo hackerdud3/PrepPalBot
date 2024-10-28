@@ -9,8 +9,8 @@ import * as z from "zod";
 import { userSignUpValidation } from "@/lib/validations/auth";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import GoogleButton from "../oauth-buttons/google-button";
-import GithubButton from "../oauth-buttons/github-button";
+import GoogleButton from "../oauth-buttons/GoogleAuthButton";
+import GithubButton from "../oauth-buttons/GithubAuthButton";
 import { signUpWithCredentials } from "@/lib/auth.actions";
 
 type Props = {};

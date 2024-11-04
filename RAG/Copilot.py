@@ -166,7 +166,7 @@ def get_session_history(session_id: str) -> InMemoryChatMessageHistory:
         st.session_state["store"][session_id] = InMemoryChatMessageHistory()
     else:
         memory = ConversationBufferWindowMemory(
-            chat_memory=st.session_state["store"][session_id], k=5, return_messages=True
+            chat_memory=st.session_state["store"][session_id], k=15, return_messages=True
         )
         key = memory.memory_variables[0]
         messages = memory.load_memory_variables({})[key]

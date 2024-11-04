@@ -2,6 +2,7 @@ import os
 import re
 import time
 import nltk
+import asyncio
 import streamlit as st
 from nltk.corpus import stopwords
 from dotenv import load_dotenv
@@ -19,9 +20,64 @@ from langchain.prompts import (
     HumanMessagePromptTemplate,
     ChatPromptTemplate,
     MessagesPlaceholder,
-    PromptTemplate,
 )
 from langchain_core.output_parsers import StrOutputParser
+
+# Add custom exceptions
+
+
+class FileProcessingError(Exception):
+    pass
+
+
+class FileSizeError(Exception):
+    pass
+
+# Add file size validation
+
+
+def validate_file_size(file, max_size_mb=5):
+    """Validate uploaded file size"""
+    file_size = file.size / (1024 * 1024)  # Convert to MB
+    if file_size > max_size_mb:
+        raise FileSizeError(f"File size exceeds {max_size_mb}MB limit")
+    return True
+
+# Optimize PDF processing
+
+
+@st.cache_data(ttl=3600)  # Cache for 1 hour
+def process_pdf(pdf_file):
+    try:
+        validate_file_size(pdf_file)
+        text = parse_pdf(pdf_file)
+        return clean_resume(text)
+    except Exception as e:
+        raise FileProcessingError(f"Error processing PDF: {str(e)}")
+
+# Async upload function
+
+
+async def upload_resume_async(pdf_file, username):
+    try:
+        # Process PDF
+        resume_text = process_pdf(pdf_file)
+
+        # Resume metadata
+        resume_info = {
+            "user_name": username,
+            "file_name": pdf_file.name,
+            "uploaded_at": time.time()
+        }
+
+        # Insert into MongoDB
+        inserted_data = collection.insert_one(resume_info)
+        resume_id = str(inserted_data.inserted_id)
+
+        return resume_text, resume_id
+
+    except Exception as e:
+        raise FileProcessingError(f"Upload failed: {str(e)}")
 
 try:
     stopwords.words("english")
@@ -119,10 +175,13 @@ def get_session_history(session_id: str) -> InMemoryChatMessageHistory:
         )
     return st.session_state["store"][session_id]
 
+
 def reset_session(session_id: str):
     st.session_state["store"][session_id] = InMemoryChatMessageHistory()
 
 # Find match using Pinecone
+
+
 def find_match(question: str, resume_id: str) -> list[dict]:
     """
     This function takes `question` and `resumeid`,
@@ -163,7 +222,8 @@ def get_response(question: str, cleaned_job_description: str):
         template=os.getenv("SYSTEM_PROMPT"))
 
     # Human message template
-    human_msg_template = HumanMessagePromptTemplate.from_template(template="{input}")
+    human_msg_template = HumanMessagePromptTemplate.from_template(
+        template="{input}")
 
     # Chat prompt
     prompt = ChatPromptTemplate.from_messages(
@@ -221,33 +281,43 @@ def main():
         )
         uploaded_resume = st.button("Upload Resume")
         if uploaded_resume and pdf_files is not None:
-            if st.session_state["user_name"] == "":
-                st.info("Please enter your username to continue")
-                st.stop()
-                return
-            reset_session(st.session_state["user_name"])
-            st.session_state["messages"] = INITIAL_MESSAGE
-            with st.spinner("Uploading your resume to the database..."):
-                text = parse_pdf(pdf_files)  # Parse resume text
-                st.session_state["resume_text"] = clean_resume(text)
-                # formatted_resume = format_resume(text)  # Format resume using LLM
-                # st.session_state["formatted_resume"] = (
-                #     formatted_resume  # Store formatted resume
-                # )
-                # Resume metadata
-                resume_info = {
-                    "user_name": st.session_state["user_name"],
-                    "file_name": pdf_files.name,
-                }
-                # Insert resume data into MongoDB
-                inserted_data = collection.insert_one(resume_info)
-                resume_id = inserted_data.inserted_id  # Resume Id
-                st.session_state["resume_id"] = str(resume_id)
-                # pinecone_vector_store(
-                #     formatted_resume, str(resume_id)
-                # )  # Store it in vectore database
-                st.sidebar.success("Resume uploaded successfully")
-        
+            try:
+                if not st.session_state["user_name"]:
+                    st.error("Please enter your username to continue")
+                    st.stop()
+
+                reset_session(st.session_state["user_name"])
+                st.session_state["messages"] = INITIAL_MESSAGE
+
+                with st.spinner("Processing your resume..."):
+                    # Show progress
+                    progress_bar = st.progress(0)
+                    progress_bar.progress(25)
+
+                    # Process resume asynchronously
+                    resume_text, resume_id = asyncio.run(
+                        upload_resume_async(
+                            pdf_files, st.session_state["user_name"])
+                    )
+
+                    progress_bar.progress(75)
+
+                    # Update session state
+                    st.session_state["resume_text"] = resume_text
+                    st.session_state["resume_id"] = resume_id
+
+                    progress_bar.progress(100)
+                    st.sidebar.success("Resume uploaded successfully!")
+
+            except FileSizeError as e:
+                st.error(str(e))
+            except FileProcessingError as e:
+                st.error(str(e))
+            except Exception as e:
+                st.error(f"An unexpected error occurred: {str(e)}")
+            finally:
+                if 'progress_bar' in locals():
+                    progress_bar.empty()
 
     # Title
     st.title("💬 Prep Pal")
